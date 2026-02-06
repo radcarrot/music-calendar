@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import artistsRouter from './src/routes/artists.js';
+import authRouter from './src/routes/auth.js';
+
 
 const app = express();
 
@@ -15,6 +17,8 @@ app.get('/api/health', (req, res) => {
 
 // mount routes
 app.use('/api/artists', artistsRouter);
+app.use('/api/auth', authRouter);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
