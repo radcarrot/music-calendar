@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -15,6 +12,13 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            setError('Password must be at least 8 characters long and contain at least one letter and one number.');
+            return;
+        }
+
         try {
             await register(name, email, password);
             navigate('/dashboard');
@@ -24,63 +28,129 @@ export default function Register() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-black bg-opacity-50 p-4">
-            <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl">
-                <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-3xl font-bold tracking-tight mb-2 text-white">Music Calendar</CardTitle>
-                    <h2 className="text-xl text-zinc-400">Sign Up</h2>
-                </CardHeader>
-                <CardContent>
+        <div className="min-h-screen flex items-center justify-center relative bg-black dark">
+            <style>{`
+                .neon-text-strong {
+                    text-shadow: 0 0 10px rgba(89, 242, 13, 0.4), 0 0 20px rgba(89, 242, 13, 0.4);
+                }
+                .neon-button {
+                    box-shadow: 0 0 15px rgba(89, 242, 13, 0.4);
+                }
+                .neon-button:hover {
+                    box-shadow: 0 0 25px rgba(89, 242, 13, 0.8);
+                }
+                .neon-border {
+                    box-shadow: 0 0 15px rgba(89, 242, 13, 0.2), inset 0 0 10px rgba(89, 242, 13, 0.1);
+                }
+                .neon-input:focus {
+                    box-shadow: 0 0 10px rgba(89, 242, 13, 0.4);
+                    border-color: #59f20d;
+                }
+                .scanline-overlay {
+                    background: linear-gradient(to bottom,
+                            transparent,
+                            transparent 50%,
+                            rgba(89, 242, 13, 0.02) 50%,
+                            rgba(89, 242, 13, 0.02));
+                    background-size: 100% 4px;
+                    pointer-events: none;
+                }
+                .bg-noise {
+                    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/baseFilter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+                    opacity: 0.03;
+                }
+                .light-leak {
+                    background: radial-gradient(circle at 50% 50%, rgba(89, 242, 13, 0.15) 0%, transparent 70%);
+                    filter: blur(60px);
+                }
+            `}</style>
+
+            <div className="fixed inset-0 z-0">
+                <img alt="Tokyo Neon Cityscape"
+                    className="w-full h-full object-cover opacity-40 grayscale-[40%] contrast-125 scale-105"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKIjEF-JzZudqTfmKXO-x56uMkFhcf0Q9mJocWLXUA1iPgw_XH80mcWc60CTXeMTpUiZ8ima4oFW_8VfU7Ar9CTXFEM5a7bZn-buQy8oDg5uB3sBYsqxF_9PF4hoTC8Cta8E103TU8roWwRwP1xgVtb8T8uHB1Or2eO2BD3XcaCuSgmrasZ9aI1bfngzHsJsUHB0ZFeDTkI95mLS3QqVGblxRKlEzmnLzsfKeeVE8rF6TjGpdfnMtVPF61x5qljPjMTUT_jHJeDHip" />
+                <div className="absolute inset-0 bg-black/60"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] light-leak"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] light-leak"></div>
+            </div>
+            <div className="fixed inset-0 pointer-events-none bg-noise z-10"></div>
+            <div className="fixed inset-0 pointer-events-none scanline-overlay z-10"></div>
+
+            <main className="relative z-20 w-full max-w-md px-6">
+                <div className="bg-black/80 backdrop-blur-md border border-primary/40 p-8 md:p-12 rounded-none neon-border">
+                    <div className="flex flex-col items-center mb-10">
+                        <div className="text-primary drop-shadow-[0_0_12px_rgba(89,242,13,0.9)] mb-4">
+                            <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.83 0 1.5-.67 1.5-1.5S7.83 8 7 8s-1.5.67-1.5 1.5S6.17 11 7 11zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 8 17 8s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-5 4c2.5 0 4.5-1.5 5.5-3.5h-11c1 2 3 3.5 5.5 3.5z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h1 className="text-white text-3xl font-black tracking-[0.3em] uppercase neon-text-strong">BeatDrop</h1>
+                    </div>
+
                     {error && (
-                        <div className="mb-4 p-3 rounded bg-red-900/50 border border-red-500/50 text-red-200 text-sm text-center">
+                        <div className="mb-6 p-4 rounded-sm bg-red-900/40 border border-red-500/50 text-red-200 text-xs font-bold tracking-widest text-center uppercase">
                             {error}
                         </div>
                     )}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Input
-                                type="text"
-                                placeholder="Name"
-                                value={name}
-                                onChange={e => setName(e.target.value)}
-                                required
-                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                            />
+
+                    <form className="space-y-6" onSubmit={handleSubmit}>
+                        <div className="space-y-2 group">
+                            <label
+                                className="block text-[11px] font-bold text-primary uppercase tracking-[0.2em] group-focus-within:neon-text-strong transition-all">
+                                Username
+                            </label>
+                            <input
+                                className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-none focus:ring-0 focus:outline-none transition-all neon-input placeholder:text-white/20 uppercase text-xs tracking-widest"
+                                placeholder="Enter username" required type="text"
+                                value={name} onChange={e => setName(e.target.value)} />
                         </div>
-                        <div className="space-y-2">
-                            <Input
-                                type="email"
-                                placeholder="Email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                required
-                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                            />
+                        <div className="space-y-2 group">
+                            <label
+                                className="block text-[11px] font-bold text-primary uppercase tracking-[0.2em] group-focus-within:neon-text-strong transition-all">
+                                Email
+                            </label>
+                            <input
+                                className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-none focus:ring-0 focus:outline-none transition-all neon-input placeholder:text-white/20 uppercase text-xs tracking-widest"
+                                placeholder="Enter email" required type="email"
+                                value={email} onChange={e => setEmail(e.target.value)} />
                         </div>
-                        <div className="space-y-2">
-                            <Input
-                                type="password"
-                                placeholder="Password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                required
-                                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                            />
+                        <div className="space-y-2 group">
+                            <label
+                                className="block text-[11px] font-bold text-primary uppercase tracking-[0.2em] group-focus-within:neon-text-strong transition-all">
+                                Password
+                            </label>
+                            <input
+                                className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-none focus:ring-0 focus:outline-none transition-all neon-input placeholder:text-white/20 uppercase text-xs tracking-widest"
+                                placeholder="••••••••" required type="password"
+                                value={password} onChange={e => setPassword(e.target.value)} />
                         </div>
-                        <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
-                            Create Account
-                        </Button>
+                        <div className="pt-6">
+                            <button
+                                className="w-full bg-primary text-black py-4 rounded-none text-sm font-black uppercase tracking-[0.3em] neon-button transition-all hover:scale-[1.02] active:scale-100 flex items-center justify-center gap-2"
+                                type="submit">
+                                Create Account
+                            </button>
+                        </div>
                     </form>
-                </CardContent>
-                <CardFooter className="flex justify-center border-t border-zinc-800 pt-6">
-                    <p className="text-sm text-zinc-400">
-                        Already have an account?{' '}
-                        <Link to="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                            Log In
-                        </Link>
-                    </p>
-                </CardFooter>
-            </Card>
+                    <div className="mt-10 pt-8 border-t border-white/10 text-center">
+                        <p className="text-slate-400 text-[11px] uppercase font-bold tracking-[0.2em]">
+                            Already have an account? <Link
+                                className="text-primary hover:text-white transition-colors underline underline-offset-4"
+                                to="/login">Log In</Link>
+                        </p>
+                    </div>
+                </div>
+                <div className="mt-8 flex justify-center gap-8 text-[10px] font-bold text-white/30 uppercase tracking-[0.3em]">
+                    <a className="hover:text-primary transition-colors" href="#">Terms</a>
+                    <a className="hover:text-primary transition-colors" href="#">Privacy</a>
+                    <a className="hover:text-primary transition-colors" href="#">Support</a>
+                </div>
+            </main>
+            <div className="absolute bottom-6 right-6 text-[10px] font-mono text-primary/20 hidden lg:block tracking-widest">
+                <p>35.6895 N, 139.6917 E</p>
+            </div>
         </div>
     );
 }

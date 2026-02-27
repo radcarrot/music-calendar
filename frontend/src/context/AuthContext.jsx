@@ -7,14 +7,39 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Ensure cookies are sent with every request
+    axios.defaults.withCredentials = true;
+
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            fetchUser();
-        } else {
-            setLoading(false);
-        }
+        // Setup interceptor for automatic token refresh
+        const interceptor = axios.interceptors.response.use(
+            (response) => response,
+            async (error) => {
+                const originalRequest = error.config;
+                // If 401 Unauthorized, and we haven't already retried
+                if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/api/auth/login' && originalRequest.url !== '/api/auth/refresh') {
+                    originalRequest._retry = true;
+                    try {
+                        // Attempt to refresh token
+                        await axios.post('/api/auth/refresh');
+                        // Retry original request (cookies and withCredentials handle passing the new JWT)
+                        return axios(originalRequest);
+                    } catch (refreshError) {
+                        // Refresh failed, user must log in again
+                        setUser(null);
+                        return Promise.reject(refreshError);
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        // Fetch user on initial load
+        fetchUser();
+
+        return () => {
+            axios.interceptors.response.eject(interceptor);
+        };
     }, []);
 
     const fetchUser = async () => {
@@ -22,9 +47,7 @@ export const AuthProvider = ({ children }) => {
             const res = await axios.get('/api/auth/me');
             setUser(res.data);
         } catch (err) {
-            console.error('Failed to fetch user', err);
-            localStorage.removeItem('token');
-            delete axios.defaults.headers.common['Authorization'];
+            setUser(null);
         } finally {
             setLoading(false);
         }
@@ -32,26 +55,24 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const res = await axios.post('/api/auth/login', { email, password });
-        const { token, user } = res.data;
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setUser(user);
-        return user;
+        setUser(res.data.user);
+        return res.data.user;
     };
 
     const register = async (name, email, password) => {
         const res = await axios.post('/api/auth/register', { name, email, password });
-        const { token, user } = res.data;
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setUser(user);
-        return user;
+        setUser(res.data.user);
+        return res.data.user;
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        delete axios.defaults.headers.common['Authorization'];
-        setUser(null);
+    const logout = async () => {
+        try {
+            await axios.post('/api/auth/logout');
+        } catch (err) {
+            console.error('Logout error', err);
+        } finally {
+            setUser(null);
+        }
     };
 
     return (
