@@ -1,18 +1,22 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/database.js';
+import crypto from 'crypto';
+import { encrypt } from '../utils/crypto.js';
+import { getGoogleClient } from '../services/googleCalendar.js';
+import { google } from 'googleapis';
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 15 * 60 * 1000 // 15 minutes
 };
 
 const REFRESH_COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
 
@@ -179,11 +183,141 @@ export const logout = async (req, res) => {
  */
 export const me = async (req, res) => {
     try {
-        const result = await query('SELECT id, name, email, created_at FROM users WHERE id = $1', [req.user.id]);
+        const result = await query('SELECT id, name, email, google_access_token IS NOT NULL as google_linked, created_at FROM users WHERE id = $1', [req.user.id]);
         if (result.rows.length === 0) return res.sendStatus(404);
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Error fetching me:', err);
         res.sendStatus(500);
+    }
+};
+
+/**
+ * Initiate Google OAuth Flow
+ */
+export const googleAuth = (req, res) => {
+    const oauth2Client = getGoogleClient();
+
+    // Generate a secure random state string
+    const state = crypto.randomBytes(32).toString('hex');
+    res.cookie('oauth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 15 * 60 * 1000 });
+
+    const url = oauth2Client.generateAuthUrl({
+        access_type: 'offline', // Requests refresh_token
+        scope: [
+            'https://www.googleapis.com/auth/calendar.events',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile'
+        ],
+        state: state,
+        prompt: 'consent'
+    });
+
+    res.redirect(url);
+};
+
+/**
+ * Handle Google OAuth Callback
+ */
+export const googleCallback = async (req, res) => {
+    try {
+        const { code, state } = req.query;
+        const savedState = req.cookies.oauth_state;
+
+        // CSRF verification
+        if (!state || state !== savedState) {
+            return res.status(403).json({ error: 'Invalid state parameter' });
+        }
+        res.clearCookie('oauth_state');
+
+        const oauth2Client = getGoogleClient();
+        const { tokens } = await oauth2Client.getToken(code);
+        oauth2Client.setCredentials(tokens);
+
+        // Fetch User Profile from Google
+        const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
+        const userInfo = await oauth2.userinfo.get();
+        const { email, name: googleName } = userInfo.data;
+
+        // Encrypt refresh token
+        const encryptedRefreshToken = encrypt(tokens.refresh_token);
+
+        // SCENARIO 1: User is already logged in (Linking Account)
+        let userId;
+
+        // We need to manually verify the JWT since authenticateToken isn't forced on this route anymore
+        const token = req.cookies.jwt;
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                userId = decoded.id;
+
+                // Link Google credentials to existing account
+                await query('UPDATE users SET google_access_token = $1, google_refresh_token = $2, google_token_expiry = $3 WHERE id = $4', [
+                    tokens.access_token || null,
+                    encryptedRefreshToken || null,
+                    tokens.expiry_date || null,
+                    userId
+                ]);
+                return res.redirect('http://localhost:5173/dashboard?google_sync=success');
+            } catch (err) {
+                // Token invalid/expired, fall through to login/register flow
+                console.log('JWT invalid during Google sync, proceeding to login flow');
+            }
+        }
+
+        // SCENARIO 2: Google Sign-In (Login or Register)
+
+        // 2a. Check if a user with this email already exists
+        let userResult = await query('SELECT * FROM users WHERE email = $1', [email]);
+        let user = userResult.rows[0];
+
+        if (!user) {
+            // 2b. Auto-Register new user
+            const randomPassword = crypto.randomBytes(16).toString('hex'); // Give them an impossibly long random password since they use Google
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+            // Generate standard refresh token
+            const stdRefreshToken = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+            const insertSql = `
+                INSERT INTO users (name, email, password_hash, refresh_token, google_access_token, google_refresh_token, google_token_expiry)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING id, name, email
+            `;
+            const insertResult = await query(insertSql, [
+                googleName || null,
+                email,
+                hashedPassword,
+                stdRefreshToken,
+                tokens.access_token || null,
+                encryptedRefreshToken || null,
+                tokens.expiry_date || null
+            ]);
+            user = insertResult.rows[0];
+            user.refresh_token = stdRefreshToken;
+        } else {
+            // 2c. Log them in, but still update their Google tokens since they just authenticated
+            await query('UPDATE users SET google_access_token = $1, google_refresh_token = COALESCE($2, google_refresh_token), google_token_expiry = $3 WHERE id = $4', [
+                tokens.access_token || null,
+                encryptedRefreshToken || null,
+                tokens.expiry_date || null,
+                user.id
+            ]);
+
+            // Need a new standard refresh token
+            user.refresh_token = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            await query('UPDATE users SET refresh_token = $1 WHERE id = $2', [user.refresh_token, user.id]);
+        }
+
+        // Issue their login cookies
+        const jwtToken = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        res.cookie('jwt', jwtToken, COOKIE_OPTIONS);
+        res.cookie('refreshToken', user.refresh_token, REFRESH_COOKIE_OPTIONS);
+
+        res.redirect('http://localhost:5173/dashboard?login=success');
+    } catch (err) {
+        console.error('Google Auth Callback Error:', err);
+        res.redirect('http://localhost:5173/dashboard?google_sync=error');
     }
 };

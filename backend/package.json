@@ -21,6 +21,9 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "googleapis": "^171.4.0",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "node-cron": "^3.0.3",
     "pg": "^8.13.1"

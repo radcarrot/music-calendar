@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, me, refresh, logout } from '../controllers/authController.js';
+import { register, login, me, refresh, logout, googleAuth, googleCallback } from '../controllers/authController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import rateLimit from 'express-rate-limit';
 
@@ -19,5 +19,8 @@ router.post('/login', loginLimiter, login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 router.get('/me', authenticateToken, me);
+
+router.get('/google', googleAuth);
+router.get('/google/callback', googleCallback);
 
 export default router;

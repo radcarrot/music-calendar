@@ -134,6 +134,21 @@ export default function Register() {
                             </button>
                         </div>
                     </form>
+
+                    <div className="mt-8 relative flex items-center">
+                        <div className="flex-grow border-t border-white/10"></div>
+                        <span className="flex-shrink-0 mx-4 text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">OR</span>
+                        <div className="flex-grow border-t border-white/10"></div>
+                    </div>
+
+                    <div className="mt-8">
+                        <button
+                            onClick={() => window.location.href = "http://localhost:5000/api/auth/google"}
+                            className="w-full bg-white/5 border border-white/10 text-white py-4 rounded-none text-[12px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                            Continue with Google
+                        </button>
+                    </div>
                     <div className="mt-10 pt-8 border-t border-white/10 text-center">
                         <p className="text-slate-400 text-[11px] uppercase font-bold tracking-[0.2em]">
                             Already have an account? <Link

@@ -39,3 +39,52 @@ export const createArtist = async (req, res) => {
     res.status(500).json({ error: 'Failed to create artist' });
   }
 };
+
+/**
+ * POST /api/artists/track
+ * Body: { artist_id }
+ */
+export const trackArtist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { artist_id } = req.body;
+
+    if (!artist_id) return res.status(400).json({ error: 'artist_id is required' });
+
+    // Add to user_artists, ON CONFLICT DO NOTHING to avoid duplicate errors
+    const sql = `
+            INSERT INTO user_artists (user_id, artist_id)
+            VALUES ($1, $2)
+            ON CONFLICT DO NOTHING
+        `;
+    await query(sql, [userId, artist_id]);
+
+    res.status(200).json({ message: 'Artist tracked successfully' });
+  } catch (err) {
+    console.error('Error tracking artist:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * GET /api/artists/tracked
+ */
+export const getTrackedArtists = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const sql = `
+            SELECT a.id, a.name, a.image_url, a.genres, a.spotify_id 
+            FROM artists a
+            JOIN user_artists ua ON a.id = ua.artist_id
+            WHERE ua.user_id = $1
+            ORDER BY a.name ASC
+        `;
+    const result = await query(sql, [userId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching tracked artists:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
