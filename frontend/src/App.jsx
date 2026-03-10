@@ -20,6 +20,8 @@ const ProtectedRoute = ({ children }) => {
 };
 
 import Dashboard from './pages/Dashboard';
+import Artists from './pages/Artists';
+import Releases from './pages/Releases';
 
 function App() {
   return (
@@ -34,6 +36,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/artists"
+            element={
+              <ProtectedRoute>
+                <Artists />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/releases"
+            element={
+              <ProtectedRoute>
+                <Releases />
               </ProtectedRoute>
             }
           />

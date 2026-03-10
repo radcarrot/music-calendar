@@ -5,6 +5,11 @@ import crypto from 'crypto';
 import { encrypt } from '../utils/crypto.js';
 import { getGoogleClient } from '../services/googleCalendar.js';
 import { google } from 'googleapis';
+import axios from 'axios';
+import fs from 'fs';
+import qs from 'qs';
+
+const getSpotifyRedirectUri = () => `${process.env.BACKEND_URL}/api/auth/spotify/callback`;
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
@@ -259,7 +264,7 @@ export const googleCallback = async (req, res) => {
                     tokens.expiry_date || null,
                     userId
                 ]);
-                return res.redirect('http://localhost:5173/dashboard?google_sync=success');
+                return res.redirect(`${process.env.FRONTEND_URL}/dashboard?google_sync=success`);
             } catch (err) {
                 // Token invalid/expired, fall through to login/register flow
                 console.log('JWT invalid during Google sync, proceeding to login flow');
@@ -315,9 +320,171 @@ export const googleCallback = async (req, res) => {
         res.cookie('jwt', jwtToken, COOKIE_OPTIONS);
         res.cookie('refreshToken', user.refresh_token, REFRESH_COOKIE_OPTIONS);
 
-        res.redirect('http://localhost:5173/dashboard?login=success');
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard?login=success`);
     } catch (err) {
         console.error('Google Auth Callback Error:', err);
-        res.redirect('http://localhost:5173/dashboard?google_sync=error');
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard?google_sync=error`);
+    }
+};
+
+/**
+ * Initiate Spotify OAuth Flow
+ */
+export const spotifyAuth = (req, res) => {
+    const scope = 'user-read-private user-read-email user-top-read';
+    const state = crypto.randomBytes(16).toString('hex');
+    res.cookie('spotify_auth_state', state, COOKIE_OPTIONS);
+
+    const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        scope: scope,
+        redirect_uri: getSpotifyRedirectUri(),
+        state: state,
+        show_dialog: 'true'
+    });
+
+    const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    console.log('[Spotify] Redirecting to:', authUrl);
+    res.redirect(authUrl);
+};
+
+/**
+ * Handle Spotify OAuth Callback
+ */
+export const spotifyCallback = async (req, res) => {
+    console.log('[Spotify] Callback hit');
+    console.log('[Spotify] Query params:', JSON.stringify(req.query));
+
+    try {
+        const code = req.query.code || null;
+        const state = req.query.state || null;
+        const storedState = req.cookies?.spotify_auth_state || null;
+
+        if (state === null || state !== storedState) {
+            console.log('[Spotify] State mismatch:', { state, storedState });
+            return res.redirect(`${process.env.FRONTEND_URL}/login?error=state_mismatch`);
+        }
+
+        res.clearCookie('spotify_auth_state');
+
+        // Exchange authorization code for tokens
+        const tokenData = qs.stringify({
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: getSpotifyRedirectUri()
+        });
+
+        console.log('[Spotify] Exchanging code for tokens...');
+        console.log('[Spotify] redirect_uri:', getSpotifyRedirectUri());
+
+        const tokenResponse = await axios({
+            method: 'post',
+            url: 'https://accounts.spotify.com/api/token',
+            data: tokenData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + Buffer.from(
+                    process.env.SPOTIFY_CLIENT_ID.trim() + ':' + process.env.SPOTIFY_CLIENT_SECRET.trim()
+                ).toString('base64')
+            }
+        });
+
+        const tokens = tokenResponse.data;
+        console.log('[Spotify] Token exchange successful! Access token received.');
+
+        // Fetch User Profile from Spotify
+        const userResponse = await axios.get('https://api.spotify.com/v1/me', {
+            headers: { 'Authorization': 'Bearer ' + tokens.access_token }
+        });
+        const userInfo = userResponse.data;
+        console.log('[Spotify] User profile fetched:', userInfo.email);
+
+        const email = userInfo.email;
+        const spotifyName = userInfo.display_name;
+
+        // Encrypt refresh token
+        const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
+        const expiryDate = Date.now() + tokens.expires_in * 1000;
+
+        // SCENARIO 1: User is already logged in (Linking Account)
+        let userId;
+        const jwtCookie = req.cookies.jwt;
+        if (jwtCookie) {
+            try {
+                const decoded = jwt.verify(jwtCookie, process.env.JWT_SECRET);
+                userId = decoded.id;
+
+                await query('UPDATE users SET spotify_access_token = $1, spotify_refresh_token = COALESCE($2, spotify_refresh_token), spotify_token_expiry = $3 WHERE id = $4', [
+                    tokens.access_token || null,
+                    encryptedRefreshToken || null,
+                    expiryDate || null,
+                    userId
+                ]);
+                console.log('[Spotify] Linked to existing user:', userId);
+                return res.redirect(`${process.env.FRONTEND_URL}/dashboard?spotify_sync=success`);
+            } catch (err) {
+                console.log('[Spotify] JWT invalid, proceeding to login/register flow');
+            }
+        }
+
+        // SCENARIO 2: Spotify Sign-In (Login or Register)
+        let userResult = await query('SELECT * FROM users WHERE email = $1', [email]);
+        let user = userResult.rows[0];
+
+        if (!user) {
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+            const stdRefreshToken = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+            const insertSql = `
+                INSERT INTO users (name, email, password_hash, refresh_token, spotify_access_token, spotify_refresh_token, spotify_token_expiry)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING id, name, email
+            `;
+            const insertResult = await query(insertSql, [
+                spotifyName || null,
+                email,
+                hashedPassword,
+                stdRefreshToken,
+                tokens.access_token || null,
+                encryptedRefreshToken || null,
+                expiryDate || null
+            ]);
+            user = insertResult.rows[0];
+            user.refresh_token = stdRefreshToken;
+            console.log('[Spotify] New user created:', user.id);
+        } else {
+            await query('UPDATE users SET spotify_access_token = $1, spotify_refresh_token = COALESCE($2, spotify_refresh_token), spotify_token_expiry = $3 WHERE id = $4', [
+                tokens.access_token || null,
+                encryptedRefreshToken || null,
+                expiryDate || null,
+                user.id
+            ]);
+
+            user.refresh_token = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            await query('UPDATE users SET refresh_token = $1 WHERE id = $2', [user.refresh_token, user.id]);
+            console.log('[Spotify] Existing user updated:', user.id);
+        }
+
+        const jwtToken = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        res.cookie('jwt', jwtToken, COOKIE_OPTIONS);
+        res.cookie('refreshToken', user.refresh_token, REFRESH_COOKIE_OPTIONS);
+
+        console.log('[Spotify] Auth complete, redirecting to dashboard');
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard?login=success`);
+    } catch (err) {
+        console.error('[Spotify] Auth Callback Error:', err.response?.data || err.message);
+
+        const errorData = err.response ? err.response.data : { message: err.message, stack: err.stack };
+        fs.writeFileSync('spotify_debug_log.json', JSON.stringify({
+            error: errorData,
+            redirect_uri_used: getSpotifyRedirectUri(),
+            client_id_used: process.env.SPOTIFY_CLIENT_ID?.trim(),
+            query_code: req.query.code || null,
+            timestamp: new Date().toISOString()
+        }, null, 2));
+
+        res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
     }
 };

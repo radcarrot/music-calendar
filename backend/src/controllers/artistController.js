@@ -29,10 +29,19 @@ export const createArtist = async (req, res) => {
     const sql = `
       INSERT INTO artists (name, spotify_id, genres, image_url)
       VALUES ($1, $2, $3, $4)
+      ON CONFLICT (spotify_id) DO UPDATE 
+      SET coalesce_dummy = false -- PostgreSQL requires at least one column to update, or DO NOTHING. Since we want to return the row, we could update name.
+    `;
+    // Wait, let's just do an update of the name so we can still use RETURNING
+    const betterSql = `
+      INSERT INTO artists (name, spotify_id, genres, image_url)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (spotify_id) 
+      DO UPDATE SET name = EXCLUDED.name, genres = EXCLUDED.genres, image_url = EXCLUDED.image_url
       RETURNING id, name, spotify_id, genres, image_url, created_at;
     `;
 
-    const result = await query(sql, [name, spotify_id, genres, image_url]);
+    const result = await query(betterSql, [name, spotify_id, genres, image_url]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error creating artist:', err);
@@ -85,6 +94,30 @@ export const getTrackedArtists = async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching tracked artists:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * DELETE /api/artists/track/:artistId
+ * Untrack an artist for the user
+ */
+export const untrackArtist = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { artistId } = req.params;
+
+    if (!artistId) return res.status(400).json({ error: 'artistId is required' });
+
+    const sql = `
+        DELETE FROM user_artists 
+        WHERE user_id = $1 AND artist_id = $2
+    `;
+    await query(sql, [userId, artistId]);
+
+    res.status(200).json({ message: 'Artist untracked successfully' });
+  } catch (err) {
+    console.error('Error untracking artist:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

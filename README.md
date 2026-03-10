@@ -61,15 +61,15 @@ User → Frontend (React + Vite)
 *   [x] **Advanced Security**: HTTP-Only Cookies for JWT, Refresh Tokens, and IP Rate Limiting.
 *   [x] **Database Updates**: `users` table with password hashing and Account Lockouts.
 
-### 🔜 Phase 2: Dashboard & Google Sync (Next)
-*   [ ] **Database Schema**: Tables for `events`, `user_artists`.
-*   [ ] **Dashboard UI**: Calendar view with an "Upcoming Soon" sidebar list.
-*   [ ] **Google Calendar Sync**: OAuth 2.0 integration to push events natively.
+### ✅ Phase 2: Dashboard & Calendar Sync (Completed)
+*   [x] **Dashboard UI**: Interactive Month, Week, and List calendar views with a sidebar widget.
+*   [x] **Event Management**: Create, track, and delete events with category tagging and time support.
+*   [x] **Google Calendar Sync**: OAuth 2.0 integration to automatically sync events natively with custom category color mapping.
 
-### Phase 3: Data & Discovery
-*   [ ] **Release Tracking**: Database schema for releases.
-*   [ ] **Spotify Integration**: OAuth and metadata fetching.
-*   [ ] **Indie Support**: Manual entries and "soft data".
+### ✅ Phase 3: Artists & Release Tracking (Completed)
+*   [x] **Spotify Integration**: OAuth authentication and real-time artist search fetching.
+*   [x] **Artists Portal**: Dedicated UI to search, add, and track your favorite Spotify artists.
+*   [x] **Releases Pipeline**: Automatically maps upcoming drops and artist data to a beautiful, dynamic "Releases" timeline sorted by date.
 
 ### Phase 4: Advanced
 *   [ ] **Background Sync**: Cron jobs for automatic updates.

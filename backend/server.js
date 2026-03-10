@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import artistsRouter from './src/routes/artists.js';
 import authRouter from './src/routes/auth.js';
 import eventsRouter from './src/routes/events.js';
+import spotifyRouter from './src/routes/spotify.js';
 
 
 const app = express();
@@ -28,7 +29,7 @@ app.use('/api', globalLimiter);
 
 // CORS Hardening
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://127.0.0.1:5173',
   credentials: true
 }));
 app.use(express.json());
@@ -43,6 +44,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/artists', artistsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/events', eventsRouter);
+app.use('/api/spotify', spotifyRouter);
 
 
 const PORT = process.env.PORT || 5000;

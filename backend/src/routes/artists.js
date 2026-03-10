@@ -1,7 +1,7 @@
 // backend/src/routes/artists.js
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { getAllArtists, createArtist, trackArtist, getTrackedArtists } from '../controllers/artistController.js';
+import { getAllArtists, createArtist, trackArtist, getTrackedArtists, untrackArtist } from '../controllers/artistController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -33,6 +33,7 @@ router.post('/', validateArtistPost, createArtist);
 // Protected routes for tracking
 router.use(authenticateToken);
 router.post('/track', validateTrackPost, trackArtist);
+router.delete('/track/:artistId', untrackArtist);
 router.get('/tracked', getTrackedArtists);
 
 export default router;

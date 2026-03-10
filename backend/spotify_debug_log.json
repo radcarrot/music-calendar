@@ -1,0 +1,14 @@
+{
+  "received_state": "db79fb131c9a30cfa766ebb90c31fda2",
+  "stored_state": "db79fb131c9a30cfa766ebb90c31fda2",
+  "all_cookies": {
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW1wSWQiOjAuMDQ2MDI1OTYxMTQzMDgyMTA2LCJpYXQiOjE3NzMwMDEwMTMsImV4cCI6MTc3MzYwNTgxM30._ZzX0hWW7zYMmcc-hLdY91yX4Ao2IZm8doClKir2Msw",
+    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ2YXJ1bnBob25lMzMyQGdtYWlsLmNvbSIsImlhdCI6MTc3MzAwMzA5MywiZXhwIjoxNzczMDAzOTkzfQ.1Etm5FgA_WY666qjlkvAS3uQmQsYFeFVvF2Ub8kRKss",
+    "spotify_auth_state": "db79fb131c9a30cfa766ebb90c31fda2"
+  },
+  "query_code": "AQAJzNO6BCFRwN0YeX1toIWwseB3x_KpFkI7IV2_3e4TOiz0nrEat-yZ5c7n_y63cdbGyq-q3tIxuaOx_sfe3QP2wxqoAyAfhPtGNAaBw-ndp5M0DdgssUjGEj_LOjyfNaZZhHqs2W0yDz88A7cJTu4AHQmXJXtzVZaCDwlTyG7gBVSzYUpixeoHiNUp01UtBGIxJ_tGhRhs0JzkaGJluUTb5Dg_FP8BjBmmXWLSEEHF1ZDZi9FQ",
+  "error": {
+    "error": "invalid_grant",
+    "error_description": "Invalid authorization code"
+  }
+}
