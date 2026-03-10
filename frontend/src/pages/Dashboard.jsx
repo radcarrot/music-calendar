@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
@@ -29,7 +29,6 @@ const Dashboard = () => {
     // Spotify state
     const [spotifyConnected, setSpotifyConnected] = useState(false);
     const [topArtists, setTopArtists] = useState([]);
-    const [spotifyLoading, setSpotifyLoading] = useState(true);
 
     // Spotify search for event tagging
     const [artistSearchQuery, setArtistSearchQuery] = useState('');
@@ -50,8 +49,6 @@ const Dashboard = () => {
                 }
             } catch (err) {
                 console.error('Failed to fetch Spotify data:', err);
-            } finally {
-                setSpotifyLoading(false);
             }
         };
         fetchSpotifyData();
@@ -487,7 +484,7 @@ const Dashboard = () => {
                         {calendarView === 'week' && (
                             <>
                                 <div className="grid grid-cols-7 gap-2 mb-2">
-                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => {
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => {
                                         return (
                                             <div key={day} className={`text-center text-sm font-bold uppercase tracking-wider text-gray-500`}>
                                                 {day}

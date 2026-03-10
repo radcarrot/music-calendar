@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 axios.defaults.withCredentials = true;
 
 const Artists = () => {
     const { logout } = useAuth();
-    const navigate = useNavigate();
     const [trackedArtists, setTrackedArtists] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Search Modal States
-    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-    const [artistSearchQuery, setArtistSearchQuery] = useState('');
+    // Spotify inline search states
     const [artistSearchResults, setArtistSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchTimeout, setSearchTimeout] = useState(null);
@@ -41,7 +38,6 @@ const Artists = () => {
     };
 
     const handleArtistSearch = (value) => {
-        setArtistSearchQuery(value);
         if (searchTimeout) clearTimeout(searchTimeout);
 
         if (value.trim().length < 2) {
@@ -81,14 +77,15 @@ const Artists = () => {
                 return [...prev, newArtist];
             });
 
-            // Close modal after tracking
-            setIsSearchModalOpen(false);
-            setArtistSearchQuery('');
+            // Clear search after tracking
+            setSearchQuery('');
             setArtistSearchResults([]);
         } catch (err) {
             console.error("Failed to track artist:", err);
         }
     };
+
+
 
     const filteredArtists = trackedArtists.filter(artist =>
         artist.name.toLowerCase().includes(searchQuery.toLowerCase())
