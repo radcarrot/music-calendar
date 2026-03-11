@@ -1,13 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 axios.defaults.withCredentials = true;
 
 const Releases = () => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -30,8 +34,10 @@ const Releases = () => {
         try {
             await axios.delete(`${API_URL}/api/events/${eventId}`);
             setEvents(prev => prev.filter(e => e.id !== eventId));
+            toast.success('Release deleted successfully');
         } catch (err) {
             console.error("Failed to delete release:", err);
+            toast.error('Failed to delete release');
         }
     };
 
@@ -98,34 +104,8 @@ const Releases = () => {
 
     return (
         <div className="bg-[#0a0a0a] text-slate-100 font-display min-h-screen flex flex-col overflow-x-hidden group/design-root">
-            {/* Header */}
-            <header className="w-full border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md z-50 sticky top-0">
-                <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 lg:px-12">
-                    <div className="flex items-center gap-2">
-                        <div className="size-8">
-                            <svg className="w-full h-full text-primary" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9c.83 0 1.5-.67 1.5-1.5S7.83 8 7 8s-1.5.67-1.5 1.5S6.17 11 7 11zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 8 17 8s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-5 4c2.5 0 4.5-1.5 5.5-3.5h-11c1 2 3 3.5 5.5 3.5z" />
-                            </svg>
-                        </div>
-                        <h2 className="text-white text-lg font-bold tracking-tight uppercase">BeatDrop</h2>
-                    </div>
-                    <nav className="hidden md:flex items-center gap-8">
-                        <Link to="/dashboard" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">Dashboard</Link>
-                        <Link to="/artists" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">Artists</Link>
-                        <Link to="/releases" className="text-sm font-bold text-primary border-b-2 border-primary pb-1">Releases</Link>
-                        <Link to="/settings" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">Settings</Link>
-                    </nav>
-                    <div className="flex items-center gap-6">
-                        <button className="relative text-gray-400 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined text-[20px]">notifications</span>
-                            <span className="absolute top-0 right-0 size-2 bg-primary rounded-full shadow-[0_0_10px_rgba(89,242,13,0.8)]"></span>
-                        </button>
-                        <button onClick={logout} className="text-gray-400 hover:text-red-500 transition-colors flex items-center" title="Log Out">
-                            <span className="material-symbols-outlined text-[20px]">logout</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
+            {/* Header / Nav */}
+            <Navbar />
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 pb-24 flex-1">
@@ -146,9 +126,20 @@ const Releases = () => {
                 </div>
 
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center p-20 text-slate-500">
-                        <span className="material-symbols-outlined text-4xl animate-spin text-primary mb-4">refresh</span>
-                        <p>Loading releases...</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={`skeleton-${i}`} className="bg-[#1a1a1a]/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/5 animate-pulse">
+                                <div className="aspect-square w-full bg-white/5"></div>
+                                <div className="p-5 relative z-10 bg-[#1a1a1a]/80 backdrop-blur-md -mt-2">
+                                    <div className="h-4 bg-white/10 rounded w-1/3 mb-4"></div>
+                                    <div className="h-5 bg-white/20 rounded w-3/4 mb-2"></div>
+                                    <div className="flex gap-2 items-center mt-3">
+                                        <div className="size-6 bg-white/5 rounded-full"></div>
+                                        <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : (
                     <div className="space-y-16">
@@ -174,7 +165,13 @@ const Releases = () => {
                                             const artistName = primaryArtist?.name || 'Various Artists';
 
                                             return (
-                                                <div key={event.id} className="bg-[#1a1a1a]/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/5 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(89,242,13,0.15)] transition-all duration-300 group relative">
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.4, delay: group.data.indexOf(event) * 0.1 }}
+                                                    key={event.id}
+                                                    className="bg-[#1a1a1a]/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/5 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(89,242,13,0.15)] transition-all duration-300 group relative"
+                                                >
                                                     <button
                                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(event.id); }}
                                                         className="absolute top-3 right-3 z-10 p-2 bg-black/60 hover:bg-black/90 rounded-full text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md cursor-pointer border border-white/5 hover:border-red-500/30"
@@ -207,7 +204,7 @@ const Releases = () => {
                                                         <h3 className="font-bold text-white text-lg leading-tight truncate" title={event.title}>{event.title}</h3>
                                                         <p className="text-sm text-slate-400 font-medium truncate mt-1" title={artistName}>{artistName}</p>
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             );
                                         })}
                                     </div>

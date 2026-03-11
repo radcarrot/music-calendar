@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -14,15 +15,16 @@ export default function Login() {
 
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
         if (!passwordRegex.test(password)) {
-            setError('Password must be at least 8 characters long and contain at least one letter and one number.');
+            toast.error('Password must be at least 8 characters long and contain at least one letter and one number.');
             return;
         }
 
         try {
             await login(email, password);
             navigate('/dashboard');
+            toast.success('Logged in successfully');
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to login');
+            toast.error(err.response?.data?.error || 'Failed to login');
         }
     };
 
@@ -94,12 +96,6 @@ export default function Login() {
                             </path>
                         </svg>
                     </div>
-
-                    {error && (
-                        <div className="mb-6 p-4 rounded-sm bg-red-900/40 border border-red-500/50 text-red-200 text-xs font-bold tracking-widest text-center uppercase">
-                            {error}
-                        </div>
-                    )}
 
                     <form className="space-y-8" onSubmit={handleSubmit}>
                         <div>

@@ -1,6 +1,6 @@
 // backend/src/routes/artists.js
 import express from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { getAllArtists, createArtist, trackArtist, getTrackedArtists, untrackArtist } from '../controllers/artistController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
@@ -27,13 +27,22 @@ const validateTrackPost = [
     }
 ];
 
+const validateArtistId = [
+    param('artistId').isInt().withMessage('Valid artist ID required'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return res.status(400).json({ error: 'Validation failed', details: errors.array() });
+        next();
+    }
+];
+
 router.get('/', getAllArtists);
 router.post('/', validateArtistPost, createArtist);
 
 // Protected routes for tracking
 router.use(authenticateToken);
 router.post('/track', validateTrackPost, trackArtist);
-router.delete('/track/:artistId', untrackArtist);
+router.delete('/track/:artistId', validateArtistId, untrackArtist);
 router.get('/tracked', getTrackedArtists);
 
 export default router;

@@ -154,3 +154,20 @@ export const searchArtists = async (req, res) => {
         res.status(500).json({ error: 'Failed to search artists' });
     }
 };
+
+/**
+ * POST /api/spotify/disconnect
+ * Clear the user's Spotify tokens.
+ */
+export const disconnectSpotify = async (req, res) => {
+    try {
+        await query(
+            'UPDATE users SET spotify_access_token = NULL, spotify_refresh_token = NULL, spotify_token_expiry = NULL WHERE id = $1',
+            [req.user.id]
+        );
+        res.json({ message: 'Spotify disconnected successfully' });
+    } catch (err) {
+        console.error('[Spotify] Disconnect error:', err);
+        res.status(500).json({ error: 'Failed to disconnect from Spotify' });
+    }
+};

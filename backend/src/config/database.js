@@ -4,10 +4,13 @@ import { Pool } from 'pg';
 
 dotenv.config();
 
+const isTest = process.env.NODE_ENV === 'test';
+const dbName = process.env.DB_NAME || 'music_calendar';
+
 const pool = new Pool({
   host: process.env.DB_HOST || '127.0.0.1',
   port: Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_NAME || 'music_calendar',
+  database: isTest ? `${dbName}_test` : dbName,
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   max: 10,

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { Toaster, toast } from 'sonner';
+import Navbar from '../components/Navbar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
@@ -104,8 +106,10 @@ const Dashboard = () => {
                 if (prev.find(a => a.id === newArtist.id)) return prev;
                 return [...prev, newArtist];
             });
+            toast.success(`Tracked ${newArtist.name} successfully`);
         } catch (err) {
             console.error("Failed to track artist:", err);
+            toast.error("Failed to track artist");
         }
     };
 
@@ -117,8 +121,10 @@ const Dashboard = () => {
                 await axios.post(`${API_URL}/api/artists/track`, { artist_id: newArtist.id });
                 setTrackedArtists([...trackedArtists, newArtist]);
                 setSearchArtist('');
+                toast.success(`Now tracking ${newArtist.name}`);
             } catch (err) {
                 console.error("Failed to track artist:", err);
+                toast.error("Failed to track artist");
             }
         }
     };
@@ -173,9 +179,11 @@ const Dashboard = () => {
             setEvents([...events, createdEvent]);
             setNewEvent({ title: '', date: '', category: 'Album Drop', url: '', description: '', start_time: '', end_time: '' });
             setTaggedArtists([]);
+            toast.success('Event saved successfully');
         } catch (err) {
             console.error("Failed to create event:", err);
             setFormError('Failed to create event. Please check your inputs.');
+            toast.error('Failed to create event');
         }
     };
 
@@ -183,8 +191,10 @@ const Dashboard = () => {
         try {
             await axios.delete(`/api/events/${eventId}`);
             setEvents(events.filter(e => e.id !== eventId));
+            toast.success('Event removed from calendar');
         } catch (err) {
             console.error("Failed to delete event:", err);
+            toast.error('Failed to delete event');
         }
     };
 
@@ -275,70 +285,10 @@ const Dashboard = () => {
     return (
         <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col overflow-hidden">
 
-            <header className="w-full border-b border-accent-dark bg-background-dark/95 backdrop-blur-sm z-50">
-                <div className="px-8 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="size-10 text-primary flex items-center justify-center drop-shadow-neon">
-                            <svg className="w-16 h-16 text-primary raccoon-logo" fill="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="
-    M12 2
-    C6.48 2 2 6.48 2 12
-    s4.48 10 10 10
-    10-4.48 10-10
-    S17.52 2 12 2
-    zm0 18
-    c-4.41 0-8-3.59-8-8
-    s3.59-8 8-8
-    8 3.59 8 8
-    -3.59 8-8 8
-    zm-5-9
-    c.83 0 1.5-.67 1.5-1.5
-    S7.83 8 7 8
-    s-1.5.67-1.5 1.5
-    S6.17 11 7 11
-    zm10 0
-    c.83 0 1.5-.67 1.5-1.5
-    S17.83 8 17 8
-    s-1.5.67-1.5 1.5
-    .67 1.5 1.5 1.5
-    zm-5 4
-    c2.5 0 4.5-1.5 5.5-3.5
-    h-11
-    c1 2 3 3.5 5.5 3.5z">
-                                </path>
-                            </svg>
-                        </div>
-                        <h2 className="text-primary text-2xl font-bold tracking-tighter text-neon">BEATDROP</h2>
-                    </div>
-                    <nav className="hidden md:flex items-center gap-8">
-                        <Link to="/dashboard" className="text-primary text-sm font-medium tracking-wide border-b-2 border-primary pb-1">
-                            Dashboard
-                        </Link>
-                        <Link to="/artists" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium tracking-wide border-b-2 border-transparent pb-1">
-                            Artists
-                        </Link>
-                        <Link to="/releases" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium tracking-wide border-b-2 border-transparent pb-1">
-                            Releases
-                        </Link>
-                        <Link to="/settings" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium tracking-wide border-b-2 border-transparent pb-1">
-                            Settings
-                        </Link>
-                    </nav>
-                    <div className="flex items-center gap-6">
-                        <button className="relative text-gray-400 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">notifications</span>
-                            <span className="absolute top-0 right-0 size-2 bg-primary rounded-full shadow-neon"></span>
-                        </button>
-                        <button onClick={logout} className="text-gray-400 hover:text-red-500 transition-colors flex items-center" title="Log Out">
-                            <span className="material-symbols-outlined">logout</span>
-                        </button>
-                        <div className="size-10 rounded-full bg-cover bg-center border-2 border-accent-dark bg-gray-700 flex items-center justify-center text-gray-400">
-                            <span className="material-symbols-outlined">person</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
+
+            {/* Header / Nav */}
+            <Navbar />
+
             <div className="flex flex-1 overflow-hidden">
                 <main className="flex-1 flex flex-col overflow-y-auto bg-background-dark p-6 lg:p-10 relative">
                     <div

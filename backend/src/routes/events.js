@@ -1,7 +1,8 @@
 import express from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { getEvents, createEvent, deleteEvent } from '../controllers/eventsController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { cacheMiddleware } from '../middleware/cacheMiddleware.js';
 
 const router = express.Router();
 
@@ -29,8 +30,18 @@ const validateEventPost = [
     }
 ];
 
-router.get('/', getEvents);
+const validateEventId = [
+    param('id').isInt().withMessage('Valid event ID required'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return res.status(400).json({ error: 'Validation failed', details: errors.array() });
+        next();
+    }
+];
+
+// Cache events queries for 3 minutes to save DB joins unless invalidated
+router.get('/', cacheMiddleware(180), getEvents);
 router.post('/', validateEventPost, createEvent);
-router.delete('/:id', deleteEvent);
+router.delete('/:id', validateEventId, deleteEvent);
 
 export default router;

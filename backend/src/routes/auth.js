@@ -1,4 +1,5 @@
 import express from 'express';
+import { body, query, validationResult } from 'express-validator';
 import { register, login, me, refresh, logout, googleAuth, googleCallback, spotifyAuth, spotifyCallback } from '../controllers/authController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import rateLimit from 'express-rate-limit';
@@ -14,16 +15,44 @@ const loginLimiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-router.post('/register', register);
-router.post('/login', loginLimiter, login);
+// Input Validation & Sanitization Middleware
+const handleValidationErrors = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: 'Validation failed', details: errors.array() });
+    }
+    next();
+};
+
+const validateRegister = [
+    body('name').trim().isLength({ min: 1, max: 255 }).withMessage('Name must be 1-255 characters').escape(),
+    body('email').trim().isEmail().withMessage('Valid email required').normalizeEmail(),
+    body('password').isLength({ min: 8 }).withMessage('Password too short'),
+    handleValidationErrors
+];
+
+const validateLogin = [
+    body('email').trim().isEmail().withMessage('Valid email required').normalizeEmail(),
+    body('password').notEmpty().withMessage('Password required'),
+    handleValidationErrors
+];
+
+const validateOAuth = [
+    query('code').optional({ checkFalsy: true }).trim().escape(),
+    query('state').optional({ checkFalsy: true }).trim().escape(),
+    handleValidationErrors
+];
+
+router.post('/register', validateRegister, register);
+router.post('/login', loginLimiter, validateLogin, login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 router.get('/me', authenticateToken, me);
 
 router.get('/google', googleAuth);
-router.get('/google/callback', googleCallback);
+router.get('/google/callback', validateOAuth, googleCallback);
 
 router.get('/spotify', spotifyAuth);
-router.get('/spotify/callback', spotifyCallback);
+router.get('/spotify/callback', validateOAuth, spotifyCallback);
 
 export default router;

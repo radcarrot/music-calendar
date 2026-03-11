@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -15,15 +16,16 @@ export default function Register() {
 
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
         if (!passwordRegex.test(password)) {
-            setError('Password must be at least 8 characters long and contain at least one letter and one number.');
+            toast.error('Password must be at least 8 characters long and contain at least one letter and one number.');
             return;
         }
 
         try {
             await register(name, email, password);
             navigate('/dashboard');
+            toast.success('Registration successful. Welcome to BeatDrop!');
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to register');
+            toast.error(err.response?.data?.error || 'Failed to register');
         }
     };
 
@@ -88,12 +90,6 @@ export default function Register() {
                         </div>
                         <h1 className="text-white text-3xl font-black tracking-[0.3em] uppercase neon-text-strong">BeatDrop</h1>
                     </div>
-
-                    {error && (
-                        <div className="mb-6 p-4 rounded-sm bg-red-900/40 border border-red-500/50 text-red-200 text-xs font-bold tracking-widest text-center uppercase">
-                            {error}
-                        </div>
-                    )}
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-2 group">
@@ -170,10 +166,10 @@ export default function Register() {
                     <a className="hover:text-primary transition-colors" href="#">Privacy</a>
                     <a className="hover:text-primary transition-colors" href="#">Support</a>
                 </div>
-            </main>
+            </main >
             <div className="absolute bottom-6 right-6 text-[10px] font-mono text-primary/20 hidden lg:block tracking-widest">
                 <p>35.6895 N, 139.6917 E</p>
             </div>
-        </div>
+        </div >
     );
 }

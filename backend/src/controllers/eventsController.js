@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { syncEventToGoogle, deleteEventFromGoogle } from '../services/googleCalendar.js';
+import { clearCachePrefix } from '../middleware/cacheMiddleware.js';
 
 // Get all events for the logged-in user
 export const getEvents = async (req, res) => {
@@ -92,6 +93,9 @@ export const createEvent = async (req, res) => {
         `;
         const finalResult = await query(fetchSql, [newEvent.id]);
 
+        // Invalidate the events cache for this user since a new one was added
+        clearCachePrefix(userId, '/api/events');
+
         res.status(201).json(finalResult.rows[0]);
     } catch (err) {
         console.error('Error creating event:', err);
@@ -117,6 +121,9 @@ export const deleteEvent = async (req, res) => {
             deleteEventFromGoogle(userId, deletedEvent.google_calendar_event_id)
                 .catch(err => console.error('Error in async Google Calendar deletion:', err));
         }
+
+        // Invalidate the events cache for this user since one was removed
+        clearCachePrefix(userId, '/api/events');
 
         res.json({ message: 'Event deleted successfully' });
     } catch (err) {

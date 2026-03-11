@@ -11,16 +11,18 @@ import qs from 'qs';
 
 const getSpotifyRedirectUri = () => `${process.env.BACKEND_URL}/api/auth/spotify/callback`;
 
+const isHttps = process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith('https://');
+
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && isHttps,
     sameSite: 'lax',
     maxAge: 15 * 60 * 1000 // 15 minutes
 };
 
 const REFRESH_COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && isHttps,
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
@@ -57,7 +59,7 @@ export const register = async (req, res) => {
         const sql = `
       INSERT INTO users (name, email, password_hash, refresh_token)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, name, email, created_at
+      RETURNING id, name, email, profile_image_url, created_at
     `;
         const result = await query(sql, [name, email, hashedPassword, refreshToken]);
         const user = result.rows[0];
@@ -188,7 +190,7 @@ export const logout = async (req, res) => {
  */
 export const me = async (req, res) => {
     try {
-        const result = await query('SELECT id, name, email, google_access_token IS NOT NULL as google_linked, created_at FROM users WHERE id = $1', [req.user.id]);
+        const result = await query('SELECT id, name, email, profile_image_url, google_access_token IS NOT NULL as google_linked, created_at FROM users WHERE id = $1', [req.user.id]);
         if (result.rows.length === 0) return res.sendStatus(404);
         res.json(result.rows[0]);
     } catch (err) {

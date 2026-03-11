@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 axios.defaults.withCredentials = true;
 
 const Artists = () => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const [trackedArtists, setTrackedArtists] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Spotify inline search states
@@ -23,6 +27,8 @@ const Artists = () => {
                 setTrackedArtists(res.data);
             } catch (err) {
                 console.error("Failed to fetch tracked artists:", err);
+            } finally {
+                setLoading(false);
             }
         };
         fetchArtists();
@@ -30,10 +36,14 @@ const Artists = () => {
 
     const handleRemoveArtist = async (artistId) => {
         try {
+            // Find artist name for toast before removing
+            const artistToRemove = trackedArtists.find(a => a.id === artistId);
             await axios.delete(`${API_URL}/api/artists/track/${artistId}`);
             setTrackedArtists(prev => prev.filter(a => a.id !== artistId));
+            if (artistToRemove) toast.success(`No longer tracking ${artistToRemove.name}`);
         } catch (error) {
             console.error('Failed to untrack artist:', error);
+            toast.error('Failed to untrack artist. Please try again.');
         }
     };
 
@@ -80,8 +90,11 @@ const Artists = () => {
             // Clear search after tracking
             setSearchQuery('');
             setArtistSearchResults([]);
+
+            toast.success(`Now tracking ${newArtist.name}!`);
         } catch (err) {
             console.error("Failed to track artist:", err);
+            toast.error("Failed to track artist. Please try again.");
         }
     };
 
@@ -94,71 +107,9 @@ const Artists = () => {
     return (
         <div className="bg-[#0a0a0a] text-slate-100 font-display min-h-screen flex flex-col overflow-x-hidden group/design-root">
 
-            {/* Header */}
-            <header className="w-full border-b border-accent-dark bg-background-dark/95 backdrop-blur-sm z-50">
-                <div className="px-8 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="size-10 text-primary flex items-center justify-center drop-shadow-neon">
-                            <svg className="w-16 h-16 text-primary raccoon-logo" fill="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="
-    M12 2
-    C6.48 2 2 6.48 2 12
-    s4.48 10 10 10
-    10-4.48 10-10
-    S17.52 2 12 2
-    zm0 18
-    c-4.41 0-8-3.59-8-8
-    s3.59-8 8-8
-    8 3.59 8 8
-    -3.59 8-8 8
-    zm-5-9
-    c.83 0 1.5-.67 1.5-1.5
-    S7.83 8 7 8
-    s-1.5.67-1.5 1.5
-    S6.17 11 7 11
-    zm10 0
-    c.83 0 1.5-.67 1.5-1.5
-    S17.83 8 17 8
-    s-1.5.67-1.5 1.5
-    .67 1.5 1.5 1.5
-    zm-5 4
-    c2.5 0 4.5-1.5 5.5-3.5
-    h-11
-    c1 2 3 3.5 5.5 3.5z">
-                                </path>
-                            </svg>
-                        </div>
-                        <h2 className="text-primary text-2xl font-bold tracking-tighter text-neon">BEATDROP</h2>
-                    </div>
-                    <nav className="hidden md:flex items-center gap-8">
-                        <Link to="/dashboard" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium tracking-wide border-b-2 border-transparent pb-1">
-                            Dashboard
-                        </Link>
-                        <Link to="/artists" className="text-primary text-sm font-medium tracking-wide border-b-2 border-primary pb-1">
-                            Artists
-                        </Link>
-                        <Link to="/releases" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium tracking-wide border-b-2 border-transparent pb-1">
-                            Releases
-                        </Link>
-                        <Link to="/settings" className="text-gray-400 hover:text-primary transition-colors text-sm font-medium tracking-wide border-b-2 border-transparent pb-1">
-                            Settings
-                        </Link>
-                    </nav>
-                    <div className="flex items-center gap-6">
-                        <button className="relative text-gray-400 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">notifications</span>
-                            <span className="absolute top-0 right-0 size-2 bg-primary rounded-full shadow-neon"></span>
-                        </button>
-                        <button onClick={logout} className="text-gray-400 hover:text-red-500 transition-colors flex items-center" title="Log Out">
-                            <span className="material-symbols-outlined">logout</span>
-                        </button>
-                        <div className="size-10 rounded-full bg-cover bg-center border-2 border-accent-dark bg-gray-700 flex items-center justify-center text-gray-400">
-                            <span className="material-symbols-outlined">person</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {/* Header / Nav */}
+            <Navbar />
+
 
             {/* Main Content */}
             <main className="flex-1 px-4 lg:px-40 py-10 z-10 w-full max-w-7xl mx-auto">
@@ -190,38 +141,91 @@ const Artists = () => {
                             </div>
                         )}
                     </label>
+
+                    {/* Spotify Search Results Dropdown */}
+                    {searchQuery.trim().length >= 2 && !isSearching && artistSearchResults.length > 0 && (
+                        <div className="absolute top-14 left-0 w-full bg-[#111111]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50">
+                            <div className="p-2">
+                                {artistSearchResults.map(artist => (
+                                    <div key={artist.spotify_id} className="flex items-center justify-between p-3 hover:bg-white/5 rounded-lg transition-colors group/item">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-gray-800 bg-cover bg-center overflow-hidden flex-shrink-0" title={artist.name}>
+                                                {artist.image_url ? (
+                                                    <img src={artist.image_url} alt={artist.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500"><span className="material-symbols-outlined text-lg">person</span></div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-white font-bold truncate max-w-[200px]">{artist.name}</h4>
+                                                <p className="text-xs text-gray-400 truncate max-w-[200px]">
+                                                    {artist.genres?.join(', ') || 'Artist'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <button 
+                                            onClick={() => handleTrackNewArtist(artist)}
+                                            className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 hover:border-primary/50 text-white font-bold text-xs hover:bg-primary/10 hover:text-primary transition-all flex items-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-[14px]">add</span>
+                                            Track
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20 animate-in fade-in duration-1000">
-                    {filteredArtists.map(artist => (
-                        <div key={artist.id} onClick={() => window.open(`https://open.spotify.com/artist/${artist.spotify_id}`, '_blank')} className="relative cursor-pointer bg-[#1a1a1a]/40 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center gap-4 text-center border border-white/5 hover:border-primary/40 hover:shadow-[0_0_40px_rgba(89,242,13,0.15)] transition-all duration-500 group">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handleRemoveArtist(artist.id); }}
-                                className="absolute top-4 right-4 text-slate-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-white/5 hover:bg-white/10 rounded-full p-1.5"
-                                title="Untrack Artist"
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                    {loading ? (
+                        Array.from({ length: 4 }).map((_, i) => (
+                            <div key={`skeleton-${i}`} className="bg-[#1a1a1a]/40 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center gap-4 text-center border border-white/5 animate-pulse">
+                                <div className="w-32 h-32 mt-2 bg-white/5 rounded-full border-4 border-[#111111]"></div>
+                                <div className="flex flex-col items-center gap-2 w-full mt-2">
+                                    <div className="h-4 bg-white/10 rounded-full w-3/4"></div>
+                                    <div className="h-3 bg-white/5 rounded-full w-1/2 mt-1"></div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        filteredArtists.map((artist, idx) => (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                                key={artist.id}
+                                onClick={() => window.open(`https://open.spotify.com/artist/${artist.spotify_id}`, '_blank')}
+                                className="relative cursor-pointer bg-[#1a1a1a]/40 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center gap-4 text-center border border-white/5 hover:border-primary/40 hover:shadow-[0_0_40px_rgba(89,242,13,0.15)] transition-all duration-500 group"
                             >
-                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                            </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleRemoveArtist(artist.id); }}
+                                    className="absolute top-4 right-4 text-slate-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-white/5 hover:bg-white/10 rounded-full p-1.5"
+                                    title="Untrack Artist"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
 
-                            <div className="w-32 h-32 mt-2 bg-center bg-no-repeat bg-cover rounded-full border-4 border-[#111111] shadow-[0_4px_20px_rgba(0,0,0,0.5)] group-hover:border-primary/30 transition-colors flex items-center justify-center overflow-hidden bg-background-dark" data-alt={`${artist.name} photo`}>
-                                {artist.image_url ? (
-                                    <img src={artist.image_url} alt={artist.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                ) : (
-                                    <span className="material-symbols-outlined text-4xl text-gray-600">person</span>
-                                )}
-                            </div>
+                                <div className="w-32 h-32 mt-2 bg-center bg-no-repeat bg-cover rounded-full border-4 border-[#111111] shadow-[0_4px_20px_rgba(0,0,0,0.5)] group-hover:border-primary/30 transition-colors flex items-center justify-center overflow-hidden bg-background-dark" data-alt={`${artist.name} photo`}>
+                                    {artist.image_url ? (
+                                        <img src={artist.image_url} alt={artist.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    ) : (
+                                        <span className="material-symbols-outlined text-4xl text-gray-600">person</span>
+                                    )}
+                                </div>
 
-                            <div className="flex flex-col items-center gap-2">
-                                <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight group-hover:text-primary transition-colors">{artist.name}</h3>
-                                {artist.genres && artist.genres.length > 0 && (
-                                    <span className="px-3 py-1 rounded-full border border-primary/40 text-primary text-xs font-bold uppercase tracking-wider bg-primary/5">
-                                        {Array.isArray(artist.genres) ? artist.genres[0] : (typeof artist.genres === 'string' ? JSON.parse(artist.genres)[0] : 'Artist')}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                                <div className="flex flex-col items-center gap-2">
+                                    <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight group-hover:text-primary transition-colors">{artist.name}</h3>
+                                    {artist.genres && artist.genres.length > 0 && (
+                                        <span className="px-3 py-1 rounded-full border border-primary/40 text-primary text-xs font-bold uppercase tracking-wider bg-primary/5">
+                                            {Array.isArray(artist.genres) ? artist.genres[0] : (typeof artist.genres === 'string' ? JSON.parse(artist.genres)[0] : 'Artist')}
+                                        </span>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )))}
 
                     {/* Empty State / Add New Card */}
                     <div
