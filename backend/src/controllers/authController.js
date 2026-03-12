@@ -11,19 +11,19 @@ import qs from 'qs';
 
 const getSpotifyRedirectUri = () => `${process.env.BACKEND_URL}/api/auth/spotify/callback`;
 
-const isHttps = process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith('https://');
+const isProduction = process.env.NODE_ENV === 'production';
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' && isHttps,
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 15 * 60 * 1000 // 15 minutes
 };
 
 const REFRESH_COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' && isHttps,
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
 
