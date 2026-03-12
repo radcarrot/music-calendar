@@ -38,8 +38,8 @@ const validateLogin = [
 ];
 
 const validateOAuth = [
-    query('code').optional({ checkFalsy: true }).trim().escape(),
-    query('state').optional({ checkFalsy: true }).trim().escape(),
+    query('code').optional({ checkFalsy: true }).trim(),
+    query('state').optional({ checkFalsy: true }).trim(),
     handleValidationErrors
 ];
 
