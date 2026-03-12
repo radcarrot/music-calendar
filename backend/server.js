@@ -18,6 +18,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Trust reverse proxy (Railway uses ngrok/envoy so rate limiter needs true IPs)
+app.set('trust proxy', 1);
+
 // Security Headers (OWASP #5)
 app.use(helmet());
 app.disable('x-powered-by');
