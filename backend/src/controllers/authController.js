@@ -246,8 +246,8 @@ export const googleCallback = async (req, res) => {
         const userInfo = await oauth2.userinfo.get();
         const { email, name: googleName } = userInfo.data;
 
-        // Encrypt refresh token
-        const encryptedRefreshToken = encrypt(tokens.refresh_token);
+        // Encrypt refresh token (defensively in case Google omits it on recurring logins)
+        const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
 
         // SCENARIO 1: User is already logged in (Linking Account)
         let userId;
