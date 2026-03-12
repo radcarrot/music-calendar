@@ -7,8 +7,9 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Ensure cookies are sent with every request
+    // Ensure cookies are sent with every request and baseURL is strictly bound to production API
     axios.defaults.withCredentials = true;
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
     useEffect(() => {
         // Setup interceptor for automatic token refresh
