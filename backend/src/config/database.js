@@ -28,7 +28,6 @@ const pool = new Pool(
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle PG client', err);
-  process.exit(-1);
 });
 
 /**
@@ -36,11 +35,9 @@ pool.on('error', (err) => {
  * Usage: const res = await query('SELECT * FROM artists WHERE id=$1', [id]);
  */
 export async function query(text, params = []) {
-  const start = Date.now();
   const res = await pool.query(text, params);
-  const duration = Date.now() - start;
   // uncomment to debug slow queries:
-  // console.log('Executed query', { text, duration, rows: res.rowCount });
+  // console.log('Executed query', { text, duration: Date.now() - start, rows: res.rowCount });
   return res;
 }
 

@@ -6,7 +6,6 @@ import { encrypt } from '../utils/crypto.js';
 import { getGoogleClient } from '../services/googleCalendar.js';
 import { google } from 'googleapis';
 import axios from 'axios';
-import fs from 'fs';
 import qs from 'qs';
 
 const getSpotifyRedirectUri = () => `${process.env.BACKEND_URL}/api/auth/spotify/callback`;
@@ -52,7 +51,7 @@ export const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Generate tokens
-        const jwtId = Math.random().toString(36).substring(7); // simple unique constraint
+        const jwtId = crypto.randomBytes(16).toString('hex');
         const refreshToken = jwt.sign({ tempId: jwtId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
         // Insert user
@@ -117,7 +116,7 @@ export const login = async (req, res) => {
         }
 
         // Generate tokens
-        const refreshToken = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const refreshToken = jwt.sign({ tempId: crypto.randomBytes(16).toString('hex') }, process.env.JWT_SECRET, { expiresIn: '7d' });
         await query('UPDATE users SET refresh_token = $1 WHERE id = $2', [refreshToken, user.id]);
 
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
@@ -237,6 +236,10 @@ export const googleCallback = async (req, res) => {
         }
         res.clearCookie('oauth_state');
 
+        if (!code) {
+            return res.status(400).json({ error: 'Missing authorization code' });
+        }
+
         const oauth2Client = getGoogleClient();
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
@@ -285,7 +288,7 @@ export const googleCallback = async (req, res) => {
             const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
             // Generate standard refresh token
-            const stdRefreshToken = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            const stdRefreshToken = jwt.sign({ tempId: crypto.randomBytes(16).toString('hex') }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
             const insertSql = `
                 INSERT INTO users (name, email, password_hash, refresh_token, google_access_token, google_refresh_token, google_token_expiry)
@@ -313,7 +316,7 @@ export const googleCallback = async (req, res) => {
             ]);
 
             // Need a new standard refresh token
-            user.refresh_token = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            user.refresh_token = jwt.sign({ tempId: crypto.randomBytes(16).toString('hex') }, process.env.JWT_SECRET, { expiresIn: '7d' });
             await query('UPDATE users SET refresh_token = $1 WHERE id = $2', [user.refresh_token, user.id]);
         }
 
@@ -369,6 +372,10 @@ export const spotifyCallback = async (req, res) => {
         }
 
         res.clearCookie('spotify_auth_state');
+
+        if (!code) {
+            return res.redirect(`${process.env.FRONTEND_URL}/login?error=missing_code`);
+        }
 
         // Exchange authorization code for tokens
         const tokenData = qs.stringify({
@@ -437,7 +444,7 @@ export const spotifyCallback = async (req, res) => {
         if (!user) {
             const randomPassword = crypto.randomBytes(16).toString('hex');
             const hashedPassword = await bcrypt.hash(randomPassword, 10);
-            const stdRefreshToken = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            const stdRefreshToken = jwt.sign({ tempId: crypto.randomBytes(16).toString('hex') }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
             const insertSql = `
                 INSERT INTO users (name, email, password_hash, refresh_token, spotify_access_token, spotify_refresh_token, spotify_token_expiry)
@@ -464,7 +471,7 @@ export const spotifyCallback = async (req, res) => {
                 user.id
             ]);
 
-            user.refresh_token = jwt.sign({ tempId: Math.random() }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            user.refresh_token = jwt.sign({ tempId: crypto.randomBytes(16).toString('hex') }, process.env.JWT_SECRET, { expiresIn: '7d' });
             await query('UPDATE users SET refresh_token = $1 WHERE id = $2', [user.refresh_token, user.id]);
             console.log('[Spotify] Existing user updated:', user.id);
         }
@@ -477,15 +484,6 @@ export const spotifyCallback = async (req, res) => {
         res.redirect(`${process.env.FRONTEND_URL}/dashboard?login=success`);
     } catch (err) {
         console.error('[Spotify] Auth Callback Error:', err.response?.data || err.message);
-
-        const errorData = err.response ? err.response.data : { message: err.message, stack: err.stack };
-        fs.writeFileSync('spotify_debug_log.json', JSON.stringify({
-            error: errorData,
-            redirect_uri_used: getSpotifyRedirectUri(),
-            client_id_used: process.env.SPOTIFY_CLIENT_ID?.trim(),
-            query_code: req.query.code || null,
-            timestamp: new Date().toISOString()
-        }, null, 2));
 
         res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
     }

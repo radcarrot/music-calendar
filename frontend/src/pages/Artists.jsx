@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -19,6 +19,11 @@ const Artists = () => {
     const [artistSearchResults, setArtistSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchTimeout, setSearchTimeout] = useState(null);
+    const mountedRef = useRef(true);
+
+    useEffect(() => {
+        return () => { mountedRef.current = false; };
+    }, []);
 
     useEffect(() => {
         const fetchArtists = async () => {
@@ -60,11 +65,11 @@ const Artists = () => {
         const timeout = setTimeout(async () => {
             try {
                 const res = await axios.get(`${API_URL}/api/spotify/search?q=${encodeURIComponent(value.trim())}`);
-                setArtistSearchResults(res.data);
+                if (mountedRef.current) setArtistSearchResults(res.data);
             } catch (err) {
                 console.error('Artist search error:', err);
             } finally {
-                setIsSearching(false);
+                if (mountedRef.current) setIsSearching(false);
             }
         }, 300);
         setSearchTimeout(timeout);
@@ -220,7 +225,7 @@ const Artists = () => {
                                     <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight group-hover:text-primary transition-colors">{artist.name}</h3>
                                     {artist.genres && artist.genres.length > 0 && (
                                         <span className="px-3 py-1 rounded-full border border-primary/40 text-primary text-xs font-bold uppercase tracking-wider bg-primary/5">
-                                            {Array.isArray(artist.genres) ? artist.genres[0] : (typeof artist.genres === 'string' ? JSON.parse(artist.genres)[0] : 'Artist')}
+                                            {Array.isArray(artist.genres) ? artist.genres[0] : (typeof artist.genres === 'string' ? (() => { try { return JSON.parse(artist.genres)[0]; } catch { return 'Artist'; } })() : 'Artist')}
                                         </span>
                                     )}
                                 </div>

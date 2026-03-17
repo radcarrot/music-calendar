@@ -73,8 +73,9 @@ export const updatePassword = async (req, res) => {
             return res.status(400).json({ error: 'Current and new passwords are required' });
         }
 
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ error: 'New password must be at least 8 characters long and contain at least one letter and one number.' });
         }
 
         const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);

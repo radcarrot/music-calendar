@@ -4,7 +4,7 @@ import { query } from '../config/database.js';
 /**
  * GET /api/artists
  */
-export const getAllArtists = async (req, res) => {
+export const getAllArtists = async (_req, res) => {
   try {
     const result = await query(
       'SELECT id, name, spotify_id, genres, image_url, created_at FROM artists ORDER BY id DESC'
@@ -26,13 +26,6 @@ export const createArtist = async (req, res) => {
 
     if (!name) return res.status(400).json({ error: 'Name is required' });
 
-    const sql = `
-      INSERT INTO artists (name, spotify_id, genres, image_url)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (spotify_id) DO UPDATE 
-      SET coalesce_dummy = false -- PostgreSQL requires at least one column to update, or DO NOTHING. Since we want to return the row, we could update name.
-    `;
-    // Wait, let's just do an update of the name so we can still use RETURNING
     const betterSql = `
       INSERT INTO artists (name, spotify_id, genres, image_url)
       VALUES ($1, $2, $3, $4)
@@ -110,10 +103,14 @@ export const untrackArtist = async (req, res) => {
     if (!artistId) return res.status(400).json({ error: 'artistId is required' });
 
     const sql = `
-        DELETE FROM user_artists 
+        DELETE FROM user_artists
         WHERE user_id = $1 AND artist_id = $2
     `;
-    await query(sql, [userId, artistId]);
+    const result = await query(sql, [userId, artistId]);
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Artist not found in your tracked list' });
+    }
 
     res.status(200).json({ message: 'Artist untracked successfully' });
   } catch (err) {

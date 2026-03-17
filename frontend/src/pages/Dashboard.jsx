@@ -37,6 +37,11 @@ const Dashboard = () => {
     const [artistSearchResults, setArtistSearchResults] = useState([]);
     const [taggedArtists, setTaggedArtists] = useState([]);
     const [searchTimeout, setSearchTimeout] = useState(null);
+    const mountedRef = useRef(true);
+
+    useEffect(() => {
+        return () => { mountedRef.current = false; };
+    }, []);
 
     // Fetch Spotify status + top artists
     useEffect(() => {
@@ -69,7 +74,7 @@ const Dashboard = () => {
         const timeout = setTimeout(async () => {
             try {
                 const res = await axios.get(`/api/spotify/search?q=${encodeURIComponent(value.trim())}`);
-                setArtistSearchResults(res.data);
+                if (mountedRef.current) setArtistSearchResults(res.data);
             } catch (err) {
                 console.error('Artist search error:', err);
             }
