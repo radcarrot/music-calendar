@@ -222,8 +222,8 @@ const Landing = () => {
                             </div>
                         </div>
                         <div className="flex gap-12 text-[10px] font-black uppercase tracking-[0.4em]">
-                            <a className="text-slate-500 hover:text-primary transition-colors" href="#">Legal</a>
-                            <a className="text-slate-500 hover:text-primary transition-colors" href="#">Security</a>
+                            <Link className="text-slate-500 hover:text-primary transition-colors" to="/terms">Terms</Link>
+                            <Link className="text-slate-500 hover:text-primary transition-colors" to="/privacy">Privacy</Link>
                             <a className="text-slate-500 hover:text-primary transition-colors" href="#">Status</a>
                         </div>
                         <div className="flex gap-6">

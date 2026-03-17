@@ -25,6 +25,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Artists = lazy(() => import('./pages/Artists'));
 const Releases = lazy(() => import('./pages/Releases'));
 const Settings = lazy(() => import('./pages/Settings'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 
 function App() {
   return (
@@ -79,6 +81,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
           </Routes>
         </Suspense>
       </Router>

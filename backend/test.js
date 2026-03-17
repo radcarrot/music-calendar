@@ -1,0 +1,1 @@
+import {Pool} from 'pg'; const pool = new Pool({connectionString: 'postgresql://neondb_owner:npg_AHSq6KQmVF7N@ep-little-shape-a1idctk2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'}); pool.connect().then(()=>console.log('Connected!')).catch(e => console.error('Error:', e.message));

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc:*)",
+      "Bash(wc -l /c/Users/91704/music-calendar/backend/src/controllers/*.js /c/Users/91704/music-calendar/frontend/src/pages/*.jsx)",
+      "Bash(grep -n \"Object.assign\" /c/Users/91704/music-calendar/frontend/src/pages/*.jsx)",
+      "Bash(find /c/Users/91704/music-calendar/backend/src/db -type f -name *.sql)",
+      "Bash(grep -n \"Promise.all\\\\|setSearchTimeout\\\\|clearTimeout\" /c/Users/91704/music-calendar/frontend/src/pages/*.jsx)",
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|BUG\\\\|HACK\" /c/Users/91704/music-calendar/backend/src --include=*.js)",
+      "Bash(grep -n \"useEffect.*\\\\[\\\\]$\" /c/Users/91704/music-calendar/frontend/src/pages/*.jsx)",
+      "Bash(grep -r \"ALTER TABLE\\\\|ADD COLUMN\" /c/Users/91704/music-calendar/backend/*.js /c/Users/91704/music-calendar/backend/src/scripts/*.js)"
+    ]
+  }
+}
