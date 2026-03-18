@@ -103,6 +103,60 @@ export const createEvent = async (req, res) => {
     }
 };
 
+// Update an event (with IDOR protection)
+export const updateEvent = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const eventId = parseInt(req.params.id);
+        const { title, event_date, description, category, external_url, artist_ids, start_time, end_time } = req.body;
+
+        // IDOR check
+        const existing = await query('SELECT id FROM events WHERE id = $1 AND user_id = $2', [eventId, userId]);
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ error: 'Event not found or you do not have permission to update it' });
+        }
+
+        await query(
+            `UPDATE events SET title=$1, event_date=$2, description=$3, category=$4,
+             external_url=$5, start_time=$6, end_time=$7 WHERE id=$8 AND user_id=$9`,
+            [title, event_date, description || null, category || null, external_url || null,
+             start_time || null, end_time || null, eventId, userId]
+        );
+
+        // Replace artist associations
+        if (Array.isArray(artist_ids)) {
+            await query('DELETE FROM event_artists WHERE event_id = $1', [eventId]);
+            for (const artistId of artist_ids) {
+                const artistCheck = await query('SELECT id FROM artists WHERE id = $1', [artistId]);
+                if (artistCheck.rows.length > 0) {
+                    await query('INSERT INTO event_artists (event_id, artist_id) VALUES ($1, $2)', [eventId, artistId]);
+                }
+            }
+        }
+
+        // Fetch updated event with artists
+        const fetchSql = `
+            SELECT e.id, e.user_id, e.title, TO_CHAR(e.event_date, 'YYYY-MM-DD') as event_date,
+                   e.start_time::text, e.end_time::text,
+                   e.description, e.category, e.external_url, e.google_calendar_event_id, e.created_at,
+                   COALESCE(json_agg(json_build_object('id', a.id, 'name', a.name, 'image_url', a.image_url)) FILTER (WHERE a.id IS NOT NULL), '[]') as artists
+            FROM events e
+            LEFT JOIN event_artists ea ON e.id = ea.event_id
+            LEFT JOIN artists a ON ea.artist_id = a.id
+            WHERE e.id = $1
+            GROUP BY e.id
+        `;
+        const finalResult = await query(fetchSql, [eventId]);
+
+        clearCachePrefix(userId, '/api/events');
+
+        res.json(finalResult.rows[0]);
+    } catch (err) {
+        console.error('Error updating event:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 // Delete an event (with IDOR protection)
 export const deleteEvent = async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { getEvents, createEvent, deleteEvent } from '../controllers/eventsController.js';
+import { getEvents, createEvent, updateEvent, deleteEvent } from '../controllers/eventsController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { cacheMiddleware } from '../middleware/cacheMiddleware.js';
 
@@ -42,6 +42,7 @@ const validateEventId = [
 // Cache events queries for 3 minutes to save DB joins unless invalidated
 router.get('/', cacheMiddleware(180), getEvents);
 router.post('/', validateEventPost, createEvent);
+router.put('/:id', validateEventId, validateEventPost, updateEvent);
 router.delete('/:id', validateEventId, deleteEvent);
 
 export default router;

@@ -14,6 +14,8 @@ const Dashboard = () => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [calendarView, setCalendarView] = useState('month'); // 'month', 'week', 'list'
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [isEditingEvent, setIsEditingEvent] = useState(false);
+    const [editForm, setEditForm] = useState(null);
     const newEventFormRef = useRef(null);
 
     const [formError, setFormError] = useState('');
@@ -200,6 +202,47 @@ const Dashboard = () => {
         } catch (err) {
             console.error("Failed to delete event:", err);
             toast.error('Failed to delete event');
+        }
+    };
+
+    const handleStartEdit = (event) => {
+        setEditForm({
+            title: event.title || '',
+            date: event.event_date || event.date || '',
+            category: event.category || 'Album Drop',
+            url: event.external_url || '',
+            description: event.description || '',
+            start_time: event.start_time ? event.start_time.slice(0, 5) : '',
+            end_time: event.end_time ? event.end_time.slice(0, 5) : '',
+            artist_ids: (event.artists || []).map(a => a.id),
+        });
+        setIsEditingEvent(true);
+    };
+
+    const handleUpdateEvent = async () => {
+        if (!editForm.title || !editForm.date) {
+            toast.error('Title and date are required');
+            return;
+        }
+        try {
+            const res = await axios.put(`/api/events/${selectedEvent.id}`, {
+                title: editForm.title,
+                event_date: editForm.date,
+                category: editForm.category,
+                external_url: editForm.url || null,
+                description: editForm.description || null,
+                start_time: editForm.start_time || null,
+                end_time: editForm.end_time || null,
+                artist_ids: editForm.artist_ids,
+            });
+            const updated = res.data;
+            setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+            setSelectedEvent(updated);
+            setIsEditingEvent(false);
+            toast.success('Event updated');
+        } catch (err) {
+            console.error('Failed to update event:', err);
+            toast.error('Failed to update event');
         }
     };
 
@@ -937,14 +980,14 @@ const Dashboard = () => {
             {selectedEvent && (
                 <div
                     className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
-                    onClick={() => setSelectedEvent(null)}
-                    onKeyDown={(e) => e.key === 'Escape' && setSelectedEvent(null)}>
+                    onClick={() => { setSelectedEvent(null); setIsEditingEvent(false); }}
+                    onKeyDown={(e) => e.key === 'Escape' && (setSelectedEvent(null), setIsEditingEvent(false))}>
                     <div
                         className="bg-[#1a1a1a] border border-accent-dark rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}>
 
-                        {/* Header with artist image */}
-                        {selectedEvent.artists?.[0]?.image_url && (
+                        {/* Header with artist image (view mode only) */}
+                        {!isEditingEvent && selectedEvent.artists?.[0]?.image_url && (
                             <div className="relative h-40 overflow-hidden rounded-t-2xl">
                                 <img src={selectedEvent.artists[0].image_url} alt="" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent"></div>
@@ -952,109 +995,237 @@ const Dashboard = () => {
                         )}
 
                         <div className="p-6">
-                            {/* Title + Close */}
-                            <div className="flex items-start justify-between gap-4 mb-4">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-white">{selectedEvent.title}</h2>
-                                    <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30">
-                                            {selectedEvent.category || 'Event'}
-                                        </span>
-                                        {selectedEvent.google_calendar_event_id && (
-                                            <span className="text-xs font-medium px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-xs">cloud_done</span>
-                                                Google Calendar
-                                            </span>
+                            {isEditingEvent && editForm ? (
+                                /* ── Edit Mode ── */
+                                <>
+                                    <div className="flex items-center justify-between mb-5">
+                                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary">edit</span>
+                                            Edit Event
+                                        </h2>
+                                        <button
+                                            onClick={() => setIsEditingEvent(false)}
+                                            className="p-2 text-gray-400 hover:text-white hover:bg-accent-dark rounded-xl transition-colors">
+                                            <span className="material-symbols-outlined">close</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="block">
+                                            <span className="text-gray-400 text-sm font-medium mb-1 block">Event Title</span>
+                                            <input
+                                                value={editForm.title}
+                                                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                                className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                                                type="text" />
+                                        </label>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <label className="block">
+                                                <span className="text-gray-400 text-sm font-medium mb-1 block">Date</span>
+                                                <input
+                                                    value={editForm.date}
+                                                    onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                                                    className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary outline-none [color-scheme:dark]"
+                                                    type="date" />
+                                            </label>
+                                            <label className="block">
+                                                <span className="text-gray-400 text-sm font-medium mb-1 block">Category</span>
+                                                <select
+                                                    value={editForm.category}
+                                                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value, start_time: '', end_time: '' })}
+                                                    className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary outline-none appearance-none">
+                                                    <option value="Album Drop">Album Drop</option>
+                                                    <option value="Single">Single</option>
+                                                    <option value="Concert">Concert</option>
+                                                    <option value="Listening Party">Listening Party</option>
+                                                    <option value="Miscellaneous">Miscellaneous</option>
+                                                </select>
+                                            </label>
+                                        </div>
+
+                                        {(editForm.category === 'Album Drop' || editForm.category === 'Single') && (
+                                            <label className="block">
+                                                <span className="text-gray-400 text-sm font-medium mb-1 block">Drop Time <span className="text-gray-600 text-xs">(optional)</span></span>
+                                                <input
+                                                    value={editForm.start_time}
+                                                    onChange={(e) => setEditForm({ ...editForm, start_time: e.target.value })}
+                                                    className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary outline-none [color-scheme:dark]"
+                                                    type="time" />
+                                            </label>
                                         )}
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedEvent(null)}
-                                    className="p-2 text-gray-400 hover:text-white hover:bg-accent-dark rounded-xl transition-colors shrink-0">
-                                    <span className="material-symbols-outlined">close</span>
-                                </button>
-                            </div>
 
-                            {/* Date & Time */}
-                            <div className="flex items-center gap-3 mb-4 text-gray-300">
-                                <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
-                                <div>
-                                    <p className="font-medium">
-                                        {(() => {
-                                            const d = selectedEvent.date || selectedEvent.event_date;
-                                            if (!d) return '';
-                                            const ymd = d.split('T')[0];
-                                            return new Date(`${ymd}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-                                        })()}
-                                    </p>
-                                    {selectedEvent.start_time && (
-                                        <p className="text-sm text-gray-400">
-                                            {selectedEvent.start_time?.slice(0, 5)}
-                                            {selectedEvent.end_time ? ` — ${selectedEvent.end_time.slice(0, 5)}` : ''}
-                                        </p>
-                                    )}
-                                    {!selectedEvent.start_time && (
-                                        <p className="text-sm text-gray-500">All day</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            {selectedEvent.description && (
-                                <div className="mb-4">
-                                    <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Description</h4>
-                                    <p className="text-gray-300 text-sm leading-relaxed bg-accent-dark/50 rounded-xl p-4">
-                                        {selectedEvent.description}
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Tagged Artists */}
-                            {selectedEvent.artists?.length > 0 && selectedEvent.artists[0]?.name && (
-                                <div className="mb-4">
-                                    <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Artists</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedEvent.artists.map((artist, idx) => (
-                                            <div key={idx} className="flex items-center gap-2 bg-accent-dark px-3 py-2 rounded-full border border-white/5">
-                                                {artist.image_url ? (
-                                                    <img src={artist.image_url} alt="" className="size-7 rounded-full object-cover" />
-                                                ) : (
-                                                    <div className="size-7 rounded-full bg-gray-700 flex items-center justify-center">
-                                                        <span className="material-symbols-outlined text-xs text-gray-400">person</span>
-                                                    </div>
-                                                )}
-                                                <span className="text-sm text-white font-medium">{artist.name}</span>
+                                        {(editForm.category === 'Concert' || editForm.category === 'Listening Party') && (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <label className="block">
+                                                    <span className="text-gray-400 text-sm font-medium mb-1 block">Start Time</span>
+                                                    <input
+                                                        value={editForm.start_time}
+                                                        onChange={(e) => setEditForm({ ...editForm, start_time: e.target.value })}
+                                                        className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary outline-none [color-scheme:dark]"
+                                                        type="time" />
+                                                </label>
+                                                <label className="block">
+                                                    <span className="text-gray-400 text-sm font-medium mb-1 block">End Time</span>
+                                                    <input
+                                                        value={editForm.end_time}
+                                                        onChange={(e) => setEditForm({ ...editForm, end_time: e.target.value })}
+                                                        className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary outline-none [color-scheme:dark]"
+                                                        type="time" />
+                                                </label>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                                        )}
 
-                            {/* Streaming URL */}
-                            {selectedEvent.external_url && (
-                                <a
-                                    href={selectedEvent.external_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 p-3 bg-accent-dark/50 hover:bg-accent-dark rounded-xl transition-colors mb-4 group">
-                                    <span className="material-symbols-outlined text-primary">play_circle</span>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-white font-medium group-hover:text-primary transition-colors">Stream / Listen</p>
-                                        <p className="text-xs text-gray-500 truncate">{selectedEvent.external_url}</p>
-                                    </div>
-                                    <span className="material-symbols-outlined text-gray-500 text-sm">open_in_new</span>
-                                </a>
-                            )}
+                                        <label className="block">
+                                            <span className="text-gray-400 text-sm font-medium mb-1 block">Streaming URL</span>
+                                            <div className="flex items-center bg-background-dark border border-accent-dark rounded-xl px-4 py-3 focus-within:border-primary">
+                                                <span className="material-symbols-outlined text-gray-500 text-sm mr-2">link</span>
+                                                <input
+                                                    value={editForm.url}
+                                                    onChange={(e) => setEditForm({ ...editForm, url: e.target.value })}
+                                                    className="bg-transparent w-full text-white outline-none"
+                                                    placeholder="https://spotify.com/..." type="url" />
+                                            </div>
+                                        </label>
 
-                            {/* Actions */}
-                            <div className="flex gap-3 pt-4 border-t border-accent-dark">
-                                <button
-                                    onClick={() => { handleDeleteEvent(selectedEvent.id); setSelectedEvent(null); }}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
-                                    <span className="material-symbols-outlined text-sm">delete</span>
-                                    Delete Event
-                                </button>
-                            </div>
+                                        <label className="block">
+                                            <span className="text-gray-400 text-sm font-medium mb-1 block">Description</span>
+                                            <textarea
+                                                value={editForm.description}
+                                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                className="w-full bg-background-dark border border-accent-dark rounded-xl px-4 py-3 text-white focus:border-primary outline-none resize-none h-24"
+                                                placeholder="Add release notes or venue details..." />
+                                        </label>
+                                    </div>
+
+                                    <div className="flex gap-3 mt-5 pt-4 border-t border-accent-dark">
+                                        <button
+                                            onClick={handleUpdateEvent}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-black font-semibold hover:bg-primary/90 transition-colors text-sm">
+                                            <span className="material-symbols-outlined text-sm">check</span>
+                                            Save Changes
+                                        </button>
+                                        <button
+                                            onClick={() => setIsEditingEvent(false)}
+                                            className="px-4 py-2.5 rounded-xl text-gray-400 hover:bg-accent-dark transition-colors text-sm">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                /* ── View Mode ── */
+                                <>
+                                    {/* Title + Close */}
+                                    <div className="flex items-start justify-between gap-4 mb-4">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-white">{selectedEvent.title}</h2>
+                                            <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                                <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30">
+                                                    {selectedEvent.category || 'Event'}
+                                                </span>
+                                                {selectedEvent.google_calendar_event_id && (
+                                                    <span className="text-xs font-medium px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                                                        <span className="material-symbols-outlined text-xs">cloud_done</span>
+                                                        Google Calendar
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setSelectedEvent(null)}
+                                            className="p-2 text-gray-400 hover:text-white hover:bg-accent-dark rounded-xl transition-colors shrink-0">
+                                            <span className="material-symbols-outlined">close</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Date & Time */}
+                                    <div className="flex items-center gap-3 mb-4 text-gray-300">
+                                        <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                                        <div>
+                                            <p className="font-medium">
+                                                {(() => {
+                                                    const d = selectedEvent.date || selectedEvent.event_date;
+                                                    if (!d) return '';
+                                                    const ymd = d.split('T')[0];
+                                                    return new Date(`${ymd}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                                                })()}
+                                            </p>
+                                            {selectedEvent.start_time && (
+                                                <p className="text-sm text-gray-400">
+                                                    {selectedEvent.start_time?.slice(0, 5)}
+                                                    {selectedEvent.end_time ? ` — ${selectedEvent.end_time.slice(0, 5)}` : ''}
+                                                </p>
+                                            )}
+                                            {!selectedEvent.start_time && (
+                                                <p className="text-sm text-gray-500">All day</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Description */}
+                                    {selectedEvent.description && (
+                                        <div className="mb-4">
+                                            <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Description</h4>
+                                            <p className="text-gray-300 text-sm leading-relaxed bg-accent-dark/50 rounded-xl p-4">
+                                                {selectedEvent.description}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Tagged Artists */}
+                                    {selectedEvent.artists?.length > 0 && selectedEvent.artists[0]?.name && (
+                                        <div className="mb-4">
+                                            <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Artists</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedEvent.artists.map((artist, idx) => (
+                                                    <div key={idx} className="flex items-center gap-2 bg-accent-dark px-3 py-2 rounded-full border border-white/5">
+                                                        {artist.image_url ? (
+                                                            <img src={artist.image_url} alt="" className="size-7 rounded-full object-cover" />
+                                                        ) : (
+                                                            <div className="size-7 rounded-full bg-gray-700 flex items-center justify-center">
+                                                                <span className="material-symbols-outlined text-xs text-gray-400">person</span>
+                                                            </div>
+                                                        )}
+                                                        <span className="text-sm text-white font-medium">{artist.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Streaming URL */}
+                                    {selectedEvent.external_url && (
+                                        <a
+                                            href={selectedEvent.external_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-3 p-3 bg-accent-dark/50 hover:bg-accent-dark rounded-xl transition-colors mb-4 group">
+                                            <span className="material-symbols-outlined text-primary">play_circle</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-white font-medium group-hover:text-primary transition-colors">Stream / Listen</p>
+                                                <p className="text-xs text-gray-500 truncate">{selectedEvent.external_url}</p>
+                                            </div>
+                                            <span className="material-symbols-outlined text-gray-500 text-sm">open_in_new</span>
+                                        </a>
+                                    )}
+
+                                    {/* Actions */}
+                                    <div className="flex gap-3 pt-4 border-t border-accent-dark">
+                                        <button
+                                            onClick={() => handleStartEdit(selectedEvent)}
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-primary hover:bg-primary/10 transition-colors text-sm font-medium">
+                                            <span className="material-symbols-outlined text-sm">edit</span>
+                                            Edit Event
+                                        </button>
+                                        <button
+                                            onClick={() => { handleDeleteEvent(selectedEvent.id); setSelectedEvent(null); }}
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
+                                            <span className="material-symbols-outlined text-sm">delete</span>
+                                            Delete Event
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
