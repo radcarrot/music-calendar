@@ -226,7 +226,7 @@ export const googleAuth = (req, res) => {
         prompt: 'consent'
     });
 
-    res.redirect(url);
+    res.send(htmlRedirect(url));
 };
 
 /**
@@ -358,7 +358,7 @@ export const spotifyAuth = (req, res) => {
 
     const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
     console.log('[Spotify] Redirecting to:', authUrl);
-    res.redirect(authUrl);
+    res.send(htmlRedirect(authUrl));
 };
 
 /**
