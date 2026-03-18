@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 axios.defaults.withCredentials = true;
 
 const Artists = () => {

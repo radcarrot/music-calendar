@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
     // Ensure cookies are sent with every request and baseURL is strictly bound to production API
     axios.defaults.withCredentials = true;
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
 
     useEffect(() => {
         // Setup interceptor for automatic token refresh
