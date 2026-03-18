@@ -118,20 +118,23 @@ const Artists = () => {
 
             {/* Main Content */}
             <main className="flex-1 px-4 sm:px-6 lg:px-40 py-6 sm:py-10 z-10 w-full max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    <h1 className="text-white tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Tracked Artists</h1>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
+                    <h1 className="text-primary text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tighter uppercase italic drop-shadow-[0_0_8px_rgba(89,242,13,0.6)]">
+                        Artists
+                    </h1>
                 </div>
 
                 {/* Search Bar */}
-                <div className="mb-10 max-w-2xl">
+                <div className="mb-6 sm:mb-10 max-w-2xl relative">
                     <label className="flex flex-col w-full h-12 relative group">
-                        <div className="flex w-full flex-1 items-center rounded-xl h-full bg-[#1a1a1a]/60 backdrop-blur-md border border-white/5 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all shadow-2xl">
+                        <div className="flex w-full flex-1 items-center rounded-none h-full bg-background-dark border-2 border-primary/40 focus-within:border-primary focus-within:shadow-[0_0_12px_rgba(89,242,13,0.3)] transition-all">
                             <div className="text-slate-400 group-focus-within:text-primary pl-4 pr-2 flex items-center justify-center transition-colors">
                                 <span className="material-symbols-outlined text-[22px]">search</span>
                             </div>
                             <input
-                                className="w-full bg-transparent border-none text-white focus:outline-0 focus:ring-0 h-full placeholder:text-slate-500 px-2 text-base font-medium"
-                                placeholder="Search tracked artists or discover new ones on Spotify..."
+                                id="artist-search-input"
+                                className="w-full bg-transparent border-none text-primary focus:outline-0 focus:ring-0 h-full placeholder:text-primary/30 px-2 text-xs uppercase tracking-widest font-bold"
+                                placeholder="SEARCH DATABASE..."
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -184,7 +187,7 @@ const Artists = () => {
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pb-20">
                     {loading ? (
                         Array.from({ length: 4 }).map((_, i) => (
                             <div key={`skeleton-${i}`} className="bg-[#1a1a1a]/40 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center gap-4 text-center border border-white/5 animate-pulse">
@@ -207,7 +210,7 @@ const Artists = () => {
                             >
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleRemoveArtist(artist.id); }}
-                                    className="absolute top-4 right-4 text-slate-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-white/5 hover:bg-white/10 rounded-full p-1.5"
+                                    className="absolute top-3 right-3 text-slate-500 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-all cursor-pointer bg-white/5 hover:bg-white/10 rounded-full p-1.5"
                                     title="Untrack Artist"
                                 >
                                     <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -286,6 +289,16 @@ const Artists = () => {
                 )}
             </main>
 
+            {/* Floating Action Button (mobile only) — focuses search */}
+            <button
+                onClick={() => document.getElementById('artist-search-input')?.focus()}
+                className="fixed bottom-6 right-6 sm:hidden w-14 h-14 bg-primary text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(89,242,13,0.5)] active:scale-95 transition-all z-20"
+                aria-label="Search for new artists"
+            >
+                <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} />
+                </svg>
+            </button>
 
             <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_-20%,rgba(89,242,13,0.08),transparent_50%)] z-0"></div>
         </div>
