@@ -14,10 +14,13 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // Use an HTML redirect page instead of res.redirect() so that Vercel's proxy
 // doesn't strip Set-Cookie headers (which it does on 302 responses).
-const htmlRedirect = (url) =>
-    `<!DOCTYPE html><html><head><meta charset="utf-8">` +
-    `<script>window.location.replace(${JSON.stringify(url)});</script>` +
-    `</head><body></body></html>`;
+// Uses meta-refresh (not inline JS) so Helmet's CSP doesn't block it.
+const htmlRedirect = (url) => {
+    const safeUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+        `<meta http-equiv="refresh" content="0; url=${safeUrl}">` +
+        `</head><body></body></html>`;
+};
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
