@@ -240,8 +240,14 @@ export const googleCallback = async (req, res) => {
         const { code, state } = req.query;
         const savedState = req.cookies.oauth_state;
 
+        console.log('[Google] Callback hit');
+        console.log('[Google] state from URL:', state ? state.substring(0, 8) + '...' : 'MISSING');
+        console.log('[Google] oauth_state cookie:', savedState ? savedState.substring(0, 8) + '...' : 'MISSING');
+        console.log('[Google] all cookie keys:', Object.keys(req.cookies));
+
         // CSRF verification
         if (!state || state !== savedState) {
+            console.error('[Google] State mismatch! URL state:', !!state, 'Cookie state:', !!savedState);
             return res.status(403).json({ error: 'Invalid state parameter' });
         }
         res.clearCookie('oauth_state');
