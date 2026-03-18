@@ -4,6 +4,7 @@ import { toast, Toaster } from 'sonner';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 axios.defaults.withCredentials = true;
@@ -162,7 +163,7 @@ const Settings = () => {
             <Navbar />
 
             {/* Main Content */}
-            <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-10 animate-in fade-in duration-700">
+            <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-24 md:pb-12 space-y-6 sm:space-y-10 animate-in fade-in duration-700">
                 <header>
                     <h2 className="text-primary text-2xl sm:text-4xl font-black tracking-tighter uppercase italic drop-shadow-[0_0_8px_rgba(89,242,13,0.6)]">Settings</h2>
                     <p className="text-slate-400 mt-2 text-sm sm:text-base">Manage your profile, connected services, and preferences.</p>
@@ -426,6 +427,8 @@ const Settings = () => {
                     </div>
                 </div>
             )}
+
+            <BottomNav />
         </div>
     );
 };

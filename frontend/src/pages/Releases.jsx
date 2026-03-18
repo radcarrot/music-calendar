@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 axios.defaults.withCredentials = true;
@@ -108,7 +109,7 @@ const Releases = () => {
             <Navbar />
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12 pb-24 flex-1">
+            <main className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12 pb-32 md:pb-24 flex-1">
                 {/* Search Bar / Title */}
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <h1 className="text-primary text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tighter uppercase italic drop-shadow-[0_0_8px_rgba(89,242,13,0.6)]">Releases</h1>
@@ -157,7 +158,7 @@ const Releases = () => {
                                         <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                                         {group.data.map(event => {
                                             // Get first artist image if available
                                             const primaryArtist = event.artists && event.artists.length > 0 ? event.artists[0] : null;
@@ -170,39 +171,40 @@ const Releases = () => {
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ duration: 0.4, delay: group.data.indexOf(event) * 0.1 }}
                                                     key={event.id}
-                                                    className="bg-[#1a1a1a]/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/5 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(89,242,13,0.15)] transition-all duration-300 group relative"
+                                                    className="group relative flex flex-row sm:flex-col bg-[#111]/80 sm:bg-[#1a1a1a]/40 backdrop-blur-sm border-l-2 border-l-primary/50 sm:border-l-0 sm:rounded-xl border border-white/5 sm:border-white/5 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(89,242,13,0.15)] transition-all duration-300 overflow-hidden"
                                                 >
                                                     <button
                                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(event.id); }}
-                                                        className="absolute top-3 right-3 z-10 p-1.5 bg-black/60 hover:bg-black/90 rounded-full text-slate-400 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-all backdrop-blur-md cursor-pointer border border-white/5 hover:border-red-500/30"
+                                                        className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-black/90 rounded-full text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md cursor-pointer border border-white/5 hover:border-red-500/30"
                                                         title="Delete Release"
                                                     >
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>
                                                     </button>
 
-                                                    <div className="aspect-square w-full bg-[#111] relative overflow-hidden">
+                                                    {/* Image: square thumbnail on mobile left, full-width on sm+ */}
+                                                    <div className="w-20 h-20 shrink-0 sm:w-full sm:h-auto sm:aspect-square bg-[#111] relative overflow-hidden">
                                                         {imageUrl ? (
                                                             <img src={imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                                                         ) : (
                                                             <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 group-hover:text-slate-500 transition-colors">
-                                                                <span className="material-symbols-outlined text-4xl mb-2">album</span>
+                                                                <span className="material-symbols-outlined text-2xl sm:text-4xl">album</span>
                                                             </div>
                                                         )}
-                                                        {/* Optional Gradient Overlay for text readability if we placed text over image */}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent opacity-80"></div>
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent opacity-80 hidden sm:block"></div>
                                                     </div>
 
-                                                    <div className="p-5 relative z-10 bg-[#1a1a1a]/80 backdrop-blur-md -mt-2">
-                                                        <div className="flex justify-between items-start mb-3 gap-2">
-                                                            <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded bg-primary/10 text-primary font-bold border border-primary/20 truncate max-w-[120px]">
+                                                    {/* Text */}
+                                                    <div className="flex-1 min-w-0 p-3 sm:p-5 sm:bg-[#1a1a1a]/80 sm:backdrop-blur-md sm:-mt-2 relative z-10 flex flex-col justify-center">
+                                                        <div className="flex flex-wrap justify-between items-start mb-1 sm:mb-3 gap-1">
+                                                            <span className="text-[9px] sm:text-[10px] uppercase tracking-widest px-1.5 sm:px-2 py-0.5 rounded bg-primary/10 text-primary font-bold border border-primary/20 truncate max-w-[100px]">
                                                                 {event.category || 'Release'}
                                                             </span>
-                                                            <span className="text-xs text-slate-400 font-medium whitespace-nowrap bg-black/40 px-2 py-0.5 rounded border border-white/5">
+                                                            <span className="text-[10px] sm:text-xs text-slate-400 font-medium whitespace-nowrap bg-black/40 px-1.5 sm:px-2 py-0.5 rounded border border-white/5">
                                                                 {formatShortDate(event.event_date)}
                                                             </span>
                                                         </div>
-                                                        <h3 className="font-bold text-white text-lg leading-tight truncate" title={event.title}>{event.title}</h3>
-                                                        <p className="text-sm text-slate-400 font-medium truncate mt-1" title={artistName}>{artistName}</p>
+                                                        <h3 className="font-black text-white text-sm sm:text-lg leading-tight truncate uppercase italic" title={event.title}>{event.title}</h3>
+                                                        <p className="text-xs sm:text-sm text-slate-400 font-medium truncate mt-0.5 sm:mt-1" title={artistName}>{artistName}</p>
                                                     </div>
                                                 </motion.div>
                                             );
@@ -214,6 +216,8 @@ const Releases = () => {
                     </div>
                 )}
             </main>
+
+            <BottomNav />
         </div>
     );
 };

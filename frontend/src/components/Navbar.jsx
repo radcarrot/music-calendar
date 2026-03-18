@@ -62,19 +62,19 @@ const Navbar = () => {
                         )}
                     </Link>
 
-                    {/* Hamburger — mobile only */}
+                    {/* Hamburger — tablets only (sm to md); phones use BottomNav */}
                     <button
                         onClick={() => setMobileOpen(o => !o)}
-                        className="md:hidden p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-accent-dark"
+                        className="hidden sm:flex md:hidden p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-accent-dark"
                         aria-label="Toggle menu">
                         <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
                     </button>
                 </div>
             </div>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu — tablets only */}
             {mobileOpen && (
-                <div className="md:hidden border-t border-white/5 bg-[#0a0a0a]/95 backdrop-blur-md">
+                <div className="hidden sm:block md:hidden border-t border-white/5 bg-[#0a0a0a]/95 backdrop-blur-md">
                     <nav className="flex flex-col px-4 py-3 gap-1">
                         {navLinks.map(({ to, label, icon }) => (
                             <Link

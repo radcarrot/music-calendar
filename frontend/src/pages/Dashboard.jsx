@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Toaster, toast } from 'sonner';
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
@@ -338,7 +339,7 @@ const Dashboard = () => {
             <Navbar />
 
             <div className="flex flex-1 overflow-hidden">
-                <main className="flex-1 flex flex-col overflow-y-auto bg-background-dark p-4 sm:p-6 lg:p-10 relative">
+                <main className="flex-1 flex flex-col overflow-y-auto bg-background-dark p-4 sm:p-6 lg:p-10 pb-24 md:pb-10 relative">
                     <div
                         className="absolute top-0 left-0 w-full h-96 bg-primary/5 blur-[120px] pointer-events-none rounded-full transform -translate-y-1/2">
                     </div>
@@ -1243,6 +1244,7 @@ const Dashboard = () => {
                 </div>
             )}
 
+            <BottomNav />
         </div>
     );
 };

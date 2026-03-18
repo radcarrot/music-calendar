@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 axios.defaults.withCredentials = true;
@@ -117,7 +118,7 @@ const Artists = () => {
 
 
             {/* Main Content */}
-            <main className="flex-1 px-4 sm:px-6 lg:px-40 py-6 sm:py-10 z-10 w-full max-w-7xl mx-auto">
+            <main className="flex-1 px-4 sm:px-6 lg:px-40 py-6 sm:py-10 pb-24 md:pb-10 z-10 w-full max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
                     <h1 className="text-primary text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tighter uppercase italic drop-shadow-[0_0_8px_rgba(89,242,13,0.6)]">
                         Artists
@@ -292,7 +293,7 @@ const Artists = () => {
             {/* Floating Action Button (mobile only) — focuses search */}
             <button
                 onClick={() => document.getElementById('artist-search-input')?.focus()}
-                className="fixed bottom-6 right-6 sm:hidden w-14 h-14 bg-primary text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(89,242,13,0.5)] active:scale-95 transition-all z-20"
+                className="fixed bottom-24 right-6 sm:hidden w-14 h-14 bg-primary text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(89,242,13,0.5)] active:scale-95 transition-all z-40"
                 aria-label="Search for new artists"
             >
                 <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,6 +302,8 @@ const Artists = () => {
             </button>
 
             <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_-20%,rgba(89,242,13,0.08),transparent_50%)] z-0"></div>
+
+            <BottomNav />
         </div>
     );
 };
