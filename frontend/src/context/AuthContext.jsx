@@ -54,6 +54,15 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshUser = async () => {
+        try {
+            const res = await axios.get('/api/auth/me');
+            setUser(res.data);
+        } catch {
+            // silently fail — user stays as-is
+        }
+    };
+
     const login = async (email, password) => {
         const res = await axios.post('/api/auth/login', { email, password });
         setUser(res.data.user);
@@ -77,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
             {!loading && children}
         </AuthContext.Provider>
     );

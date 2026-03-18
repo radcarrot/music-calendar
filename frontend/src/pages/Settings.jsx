@@ -10,7 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 axios.defaults.withCredentials = true;
 
 const Settings = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, refreshUser } = useAuth();
 
     // States for integrations and preferences
     const [spotifyConnected, setSpotifyConnected] = useState(false);
@@ -129,6 +129,7 @@ const Settings = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setProfileImage(res.data.profile_image_url);
+            await refreshUser();
             toast.success('Profile avatar updated');
         } catch (err) {
             console.error('Failed to upload profile image:', err);
