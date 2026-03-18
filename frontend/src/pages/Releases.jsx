@@ -111,13 +111,13 @@ const Releases = () => {
             <main className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12 pb-24 flex-1">
                 {/* Search Bar / Title */}
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <h1 className="text-white tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Upcoming Releases</h1>
+                    <h1 className="text-primary text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tighter uppercase italic drop-shadow-[0_0_8px_rgba(89,242,13,0.6)]">Releases</h1>
                     <div className="w-full md:w-96">
                         <label className="relative group flex items-center h-12">
-                            <span className="material-symbols-outlined absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+                            <span className="material-symbols-outlined absolute left-4 text-primary/60 group-focus-within:text-primary transition-colors">search</span>
                             <input
-                                className="w-full bg-[#1a1a1a]/60 backdrop-blur-md border border-white/5 rounded-xl h-full pl-12 pr-4 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-medium shadow-lg"
-                                placeholder="Search releases or artists..."
+                                className="w-full bg-background-dark border-2 border-primary/40 rounded-none h-full pl-12 pr-4 text-primary placeholder:text-primary/30 focus:outline-none focus:border-primary focus:shadow-[0_0_12px_rgba(89,242,13,0.3)] transition-all font-bold text-xs uppercase tracking-widest"
+                                placeholder="SEARCH DATABASE..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -157,7 +157,7 @@ const Releases = () => {
                                         <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                                         {group.data.map(event => {
                                             // Get first artist image if available
                                             const primaryArtist = event.artists && event.artists.length > 0 ? event.artists[0] : null;
@@ -174,7 +174,7 @@ const Releases = () => {
                                                 >
                                                     <button
                                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(event.id); }}
-                                                        className="absolute top-3 right-3 z-10 p-2 bg-black/60 hover:bg-black/90 rounded-full text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md cursor-pointer border border-white/5 hover:border-red-500/30"
+                                                        className="absolute top-3 right-3 z-10 p-1.5 bg-black/60 hover:bg-black/90 rounded-full text-slate-400 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-all backdrop-blur-md cursor-pointer border border-white/5 hover:border-red-500/30"
                                                         title="Delete Release"
                                                     >
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>

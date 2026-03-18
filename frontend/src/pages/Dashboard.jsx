@@ -342,11 +342,12 @@ const Dashboard = () => {
                     <div
                         className="absolute top-0 left-0 w-full h-96 bg-primary/5 blur-[120px] pointer-events-none rounded-full transform -translate-y-1/2">
                     </div>
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 sm:mb-10 z-10">
                         <div>
-                            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">Welcome, <span
-                                className="text-primary text-neon">{user?.name || 'User'}</span></h1>
-                            <p className="text-gray-400 text-sm sm:text-lg">Your release radar is looking active this month.</p>
+                            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-1 tracking-tighter uppercase italic leading-none">
+                                Welcome, <span className="text-primary drop-shadow-[0_0_8px_rgba(89,242,13,0.6)]">{user?.name || 'User'}</span>
+                            </h1>
+                            <p className="text-slate-400 text-sm sm:text-base font-mono">Your release radar is looking active this month.</p>
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {!user?.google_linked ? (
