@@ -117,9 +117,9 @@ const Artists = () => {
 
 
             {/* Main Content */}
-            <main className="flex-1 px-4 lg:px-40 py-10 z-10 w-full max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-                    <h1 className="text-white tracking-tight text-3xl md:text-4xl font-bold leading-tight">Tracked Artists</h1>
+            <main className="flex-1 px-4 sm:px-6 lg:px-40 py-6 sm:py-10 z-10 w-full max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <h1 className="text-white tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Tracked Artists</h1>
                 </div>
 
                 {/* Search Bar */}

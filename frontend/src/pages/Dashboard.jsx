@@ -338,15 +338,15 @@ const Dashboard = () => {
             <Navbar />
 
             <div className="flex flex-1 overflow-hidden">
-                <main className="flex-1 flex flex-col overflow-y-auto bg-background-dark p-6 lg:p-10 relative">
+                <main className="flex-1 flex flex-col overflow-y-auto bg-background-dark p-4 sm:p-6 lg:p-10 relative">
                     <div
                         className="absolute top-0 left-0 w-full h-96 bg-primary/5 blur-[120px] pointer-events-none rounded-full transform -translate-y-1/2">
                     </div>
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 z-10">
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">Welcome, <span
+                            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">Welcome, <span
                                 className="text-primary text-neon">{user?.name || 'User'}</span></h1>
-                            <p className="text-gray-400 text-lg">Your release radar is looking active this month.</p>
+                            <p className="text-gray-400 text-sm sm:text-lg">Your release radar is looking active this month.</p>
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {!user?.google_linked ? (
@@ -382,9 +382,9 @@ const Dashboard = () => {
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center justify-between mb-6 z-10">
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-2xl font-bold text-white tracking-wide">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 z-10">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-lg sm:text-2xl font-bold text-white tracking-wide">
                                 {calendarView === 'week'
                                     ? `${calendarWeek[0].fullDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${calendarWeek[6].fullDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                                     : currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -417,32 +417,33 @@ const Dashboard = () => {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setCalendarView('month')}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${calendarView === 'month' ? 'bg-primary text-black shadow-neon' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}>Month</button>
+                                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${calendarView === 'month' ? 'bg-primary text-black shadow-neon' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}>Month</button>
                             <button
                                 onClick={() => setCalendarView('week')}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${calendarView === 'week' ? 'bg-primary text-black shadow-neon' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}>Week</button>
+                                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${calendarView === 'week' ? 'bg-primary text-black shadow-neon' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}>Week</button>
                             <button
                                 onClick={() => setCalendarView('list')}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${calendarView === 'list' ? 'bg-primary text-black shadow-neon' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}>List</button>
+                                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${calendarView === 'list' ? 'bg-primary text-black shadow-neon' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}>List</button>
                         </div>
                     </div>
                     <div
-                        className={`bg-card-dark rounded-2xl border border-accent-dark p-6 shadow-2xl z-10 flex flex-col overflow-hidden ${calendarView === 'week' ? 'min-h-[350px] mb-8' : 'flex-1 min-h-[600px]'}`}>
+                        className={`bg-card-dark rounded-2xl border border-accent-dark p-3 sm:p-6 shadow-2xl z-10 flex flex-col overflow-hidden ${calendarView === 'week' ? 'min-h-[300px] sm:min-h-[350px] mb-8' : 'flex-1 min-h-[320px] sm:min-h-[500px]'}`}>
 
                         {/* MONTH VIEW */}
                         {calendarView === 'month' && (
                             <>
-                                <div className="grid grid-cols-7 gap-2 mb-2">
-                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => {
+                                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+                                    {[['S','Sun'], ['M','Mon'], ['T','Tue'], ['W','Wed'], ['T','Thu'], ['F','Fri'], ['S','Sat']].map(([short, full], index) => {
                                         const isTodayWeekDay = new Date().getDay() === index;
                                         return (
-                                            <div key={day} className={`text-center text-sm font-bold uppercase tracking-wider ${isTodayWeekDay ? 'text-primary' : 'text-gray-500'}`}>
-                                                {day}
+                                            <div key={full} className={`text-center text-[10px] sm:text-sm font-bold uppercase tracking-wider ${isTodayWeekDay ? 'text-primary' : 'text-gray-500'}`}>
+                                                <span className="sm:hidden">{short}</span>
+                                                <span className="hidden sm:inline">{full}</span>
                                             </div>
                                         );
                                     })}
                                 </div>
-                                <div className={`grid grid-cols-7 gap-2 flex-1 ${calendarDays.length > 35 ? 'grid-rows-6' : 'grid-rows-5'}`}>
+                                <div className={`grid grid-cols-7 gap-1 sm:gap-2 flex-1 ${calendarDays.length > 35 ? 'grid-rows-6' : 'grid-rows-5'}`}>
                                     {calendarDays.map((dayObj, i) => {
                                         const dayEvents = events.filter(e => {
                                             const rawDate = e.date || e.event_date;
@@ -453,17 +454,27 @@ const Dashboard = () => {
                                         return (
                                             <div key={i}
                                                 onClick={() => dayObj.isCurrentMonth && handleDateClick(dayObj.dateStr)}
-                                                className={`p-2 lg:p-3 rounded-xl border border-transparent transition-all relative flex flex-col ${dayObj.isCurrentMonth ? 'bg-accent-dark/50 hover:border-primary/30 cursor-pointer group' : 'bg-background-dark/30 text-gray-700 pointer-events-none'} ${isToday ? '!border-primary/40 shadow-[inset_0_0_10px_rgba(6,249,67,0.1)]' : ''}`}>
-                                                <span className={`${dayObj.isCurrentMonth ? 'text-gray-300 font-medium group-hover:text-white' : 'text-gray-700'} ${isToday ? '!text-primary font-bold' : ''}`}>
+                                                className={`p-1 sm:p-2 lg:p-3 rounded-lg sm:rounded-xl border border-transparent transition-all relative flex flex-col ${dayObj.isCurrentMonth ? 'bg-accent-dark/50 hover:border-primary/30 cursor-pointer group' : 'bg-background-dark/30 text-gray-700 pointer-events-none'} ${isToday ? '!border-primary/40 shadow-[inset_0_0_10px_rgba(6,249,67,0.1)]' : ''}`}>
+                                                <span className={`text-[11px] sm:text-sm ${dayObj.isCurrentMonth ? 'text-gray-300 font-medium group-hover:text-white' : 'text-gray-700'} ${isToday ? '!text-primary font-bold' : ''}`}>
                                                     {dayObj.day}
                                                 </span>
-                                                {isToday && <div className="absolute top-2 right-2 size-2 bg-primary rounded-full shadow-neon animate-pulse"></div>}
+                                                {isToday && <div className="absolute top-1 right-1 sm:top-2 sm:right-2 size-1.5 sm:size-2 bg-primary rounded-full shadow-neon animate-pulse"></div>}
 
-                                                <div className="mt-1 flex flex-col gap-1 overflow-y-auto w-full max-h-[60px] md:max-h-full scrollbar-none">
+                                                {/* Mobile: show dots for events */}
+                                                <div className="sm:hidden mt-1 flex flex-wrap gap-0.5 justify-center">
+                                                    {dayEvents.slice(0, 3).map(event => (
+                                                        <div key={event.id}
+                                                            onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
+                                                            className="size-1.5 rounded-full bg-primary cursor-pointer" />
+                                                    ))}
+                                                </div>
+
+                                                {/* Desktop: show event labels */}
+                                                <div className="hidden sm:flex mt-1 flex-col gap-1 overflow-y-auto w-full max-h-[60px] md:max-h-full scrollbar-none">
                                                     {dayEvents.map(event => (
                                                         <div key={event.id}
                                                             onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
-                                                            className="w-full bg-primary/20 border-l-2 border-primary p-0.5 lg:p-1 rounded-sm flex items-center justify-between group/event relative cursor-pointer hover:bg-primary/30 transition-colors">
+                                                            className="w-full bg-primary/20 border-l-2 border-primary p-0.5 lg:p-1 rounded-sm flex items-center justify-between cursor-pointer hover:bg-primary/30 transition-colors">
                                                             <p className="text-[9px] lg:text-[10px] text-primary truncate font-bold pr-1" title={event.title}>{event.title}</p>
                                                             {event.google_calendar_event_id && (
                                                                 <span className="material-symbols-outlined text-[10px] text-blue-400 shrink-0" title="Synced to Google Calendar">cloud_done</span>

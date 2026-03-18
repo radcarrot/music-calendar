@@ -73,7 +73,7 @@ export default function Login() {
             <div className="fixed inset-0 pointer-events-none bg-noise z-10"></div>
             <div className="fixed inset-0 pointer-events-none scanline-overlay z-10 opacity-30"></div>
 
-            <header className="fixed top-0 left-0 w-full z-50 p-8 lg:p-12">
+            <header className="fixed top-0 left-0 w-full z-50 p-4 sm:p-8 lg:p-12">
                 <div className="flex items-center gap-4">
                     <svg className="w-10 h-10 text-primary raccoon-logo" fill="currentColor" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
@@ -85,9 +85,9 @@ export default function Login() {
                 </div>
             </header>
 
-            <main className="relative z-30 w-full max-w-md px-6 flex flex-col items-center">
+            <main className="relative z-30 w-full max-w-md px-4 sm:px-6 flex flex-col items-center">
                 <div
-                    className="w-full relative bg-black/80 backdrop-blur-3xl border border-primary/30 rounded-sm p-10 lg:p-14 shadow-[0_0_100px_rgba(0,0,0,1)]">
+                    className="w-full relative bg-black/80 backdrop-blur-3xl border border-primary/30 rounded-sm p-6 sm:p-10 lg:p-14 shadow-[0_0_100px_rgba(0,0,0,1)]">
                     <div className="flex justify-center mb-10">
                         <svg className="w-16 h-16 text-primary raccoon-logo" fill="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">

@@ -162,14 +162,14 @@ const Settings = () => {
             <Navbar />
 
             {/* Main Content */}
-            <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-12 space-y-10 animate-in fade-in duration-700">
+            <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6 sm:space-y-10 animate-in fade-in duration-700">
                 <header>
-                    <h2 className="text-4xl font-black text-white tracking-tight">Settings & Integrations</h2>
-                    <p className="text-slate-400 mt-2">Manage your profile, connected services, and preferences.</p>
+                    <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Settings & Integrations</h2>
+                    <p className="text-slate-400 mt-2 text-sm sm:text-base">Manage your profile, connected services, and preferences.</p>
                 </header>
 
                 {/* Profile Section */}
-                <section className="bg-[#1a1a1a]/40 backdrop-blur-md border border-white/5 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                <section className="bg-[#1a1a1a]/40 backdrop-blur-md border border-white/5 rounded-xl p-5 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
                         <div className="relative group">
                             <div className="size-24 rounded-full border-2 border-[#59f20d]/30 p-1 group-hover:border-[#59f20d] transition-all duration-300">

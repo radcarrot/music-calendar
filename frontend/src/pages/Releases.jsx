@@ -108,10 +108,10 @@ const Releases = () => {
             <Navbar />
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto w-full p-6 lg:p-12 pb-24 flex-1">
+            <main className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-12 pb-24 flex-1">
                 {/* Search Bar / Title */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <h1 className="text-white tracking-tight text-3xl md:text-4xl font-bold leading-tight">Upcoming Releases</h1>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <h1 className="text-white tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Upcoming Releases</h1>
                     <div className="w-full md:w-96">
                         <label className="relative group flex items-center h-12">
                             <span className="material-symbols-outlined absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors">search</span>

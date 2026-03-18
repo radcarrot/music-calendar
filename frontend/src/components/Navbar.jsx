@@ -6,9 +6,16 @@ const Navbar = () => {
     const { user, logout } = useAuth();
     const location = useLocation();
     const [imageError, setImageError] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
 
-    // Helper to determine if a path is active
     const isActive = (path) => location.pathname === path;
+
+    const navLinks = [
+        { to: '/dashboard', label: 'Dashboard', icon: 'calendar_month' },
+        { to: '/artists', label: 'Artists', icon: 'person' },
+        { to: '/releases', label: 'Releases', icon: 'album' },
+        { to: '/settings', label: 'Settings', icon: 'settings' },
+    ];
 
     return (
         <header className="w-full border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md z-50 sticky top-0">
@@ -23,55 +30,84 @@ const Navbar = () => {
                     <h2 className="text-white text-lg font-bold tracking-tight uppercase">BeatDrop</h2>
                 </div>
 
-                {/* Main Navigation Links */}
+                {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center gap-8">
-                    <Link
-                        to="/dashboard"
-                        className={`text-sm font-bold transition-colors ${isActive('/dashboard') ? 'text-primary border-b-2 border-primary pb-1' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        Dashboard
-                    </Link>
-                    <Link
-                        to="/artists"
-                        className={`text-sm font-bold transition-colors ${isActive('/artists') ? 'text-primary border-b-2 border-primary pb-1' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        Artists
-                    </Link>
-                    <Link
-                        to="/releases"
-                        className={`text-sm font-bold transition-colors ${isActive('/releases') ? 'text-primary border-b-2 border-primary pb-1' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        Releases
-                    </Link>
-                    <Link
-                        to="/settings"
-                        className={`text-sm font-bold transition-colors ${isActive('/settings') ? 'text-primary border-b-2 border-primary pb-1' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        Settings
-                    </Link>
+                    {navLinks.map(({ to, label }) => (
+                        <Link
+                            key={to}
+                            to={to}
+                            className={`text-sm font-bold transition-colors ${isActive(to) ? 'text-primary border-b-2 border-primary pb-1' : 'text-gray-400 hover:text-white'}`}
+                        >
+                            {label}
+                        </Link>
+                    ))}
                 </nav>
 
-                {/* Action Buttons & Profile */}
-                <div className="flex items-center gap-6">
-                    <button className="relative text-gray-400 hover:text-white transition-colors" title="Notifications">
+                {/* Right side actions */}
+                <div className="flex items-center gap-4">
+                    <button className="relative text-gray-400 hover:text-white transition-colors p-2" title="Notifications">
                         <span className="material-symbols-outlined text-[20px]">notifications</span>
-                        {/* Notification marker dot (can be made dynamic later) */}
-                        <span className="absolute top-0 right-0 size-2 bg-primary rounded-full shadow-neon"></span>
+                        <span className="absolute top-1.5 right-1.5 size-2 bg-primary rounded-full shadow-neon"></span>
                     </button>
 
-                    <button onClick={logout} className="text-gray-400 hover:text-red-500 transition-colors flex items-center" title="Log Out">
+                    <button onClick={logout} className="hidden md:flex text-gray-400 hover:text-red-500 transition-colors p-2 items-center" title="Log Out">
                         <span className="material-symbols-outlined text-[20px]">logout</span>
                     </button>
 
-                    <Link to="/settings" className="size-10 rounded-full bg-cover bg-center border-2 border-[#222222] hover:border-primary bg-[#111111] flex items-center justify-center text-gray-400 hover:text-white transition-all cursor-pointer shadow-[0_0_15px_rgba(89,242,13,0.1)] overflow-hidden" title="Settings">
+                    <Link to="/settings" className="hidden md:flex size-10 rounded-full bg-cover bg-center border-2 border-[#222222] hover:border-primary bg-[#111111] items-center justify-center text-gray-400 hover:text-white transition-all cursor-pointer shadow-[0_0_15px_rgba(89,242,13,0.1)] overflow-hidden" title="Settings">
                         {user?.profile_image_url && !imageError ? (
                             <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" onError={() => setImageError(true)} />
                         ) : (
                             <span className="material-symbols-outlined text-sm">person</span>
                         )}
                     </Link>
+
+                    {/* Hamburger — mobile only */}
+                    <button
+                        onClick={() => setMobileOpen(o => !o)}
+                        className="md:hidden p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-accent-dark"
+                        aria-label="Toggle menu">
+                        <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
+                    </button>
                 </div>
             </div>
+
+            {/* Mobile Menu */}
+            {mobileOpen && (
+                <div className="md:hidden border-t border-white/5 bg-[#0a0a0a]/95 backdrop-blur-md">
+                    <nav className="flex flex-col px-4 py-3 gap-1">
+                        {navLinks.map(({ to, label, icon }) => (
+                            <Link
+                                key={to}
+                                to={to}
+                                onClick={() => setMobileOpen(false)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-colors ${isActive(to) ? 'text-primary bg-primary/10' : 'text-gray-400 hover:text-white hover:bg-accent-dark'}`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{icon}</span>
+                                {label}
+                            </Link>
+                        ))}
+                        <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between px-4 py-2">
+                            <div className="flex items-center gap-3">
+                                <div className="size-9 rounded-full bg-[#111111] border border-[#222222] flex items-center justify-center overflow-hidden">
+                                    {user?.profile_image_url && !imageError ? (
+                                        <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" onError={() => setImageError(true)} />
+                                    ) : (
+                                        <span className="material-symbols-outlined text-sm text-gray-400">person</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-white">{user?.name || 'Account'}</span>
+                            </div>
+                            <button
+                                onClick={() => { logout(); setMobileOpen(false); }}
+                                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors p-2">
+                                <span className="material-symbols-outlined text-[18px]">logout</span>
+                                Log out
+                            </button>
+                        </div>
+                    </nav>
+                </div>
+            )}
         </header>
     );
 };

@@ -78,8 +78,8 @@ export default function Register() {
             <div className="fixed inset-0 pointer-events-none bg-noise z-10"></div>
             <div className="fixed inset-0 pointer-events-none scanline-overlay z-10"></div>
 
-            <main className="relative z-20 w-full max-w-md px-6">
-                <div className="bg-black/80 backdrop-blur-md border border-primary/40 p-8 md:p-12 rounded-none neon-border">
+            <main className="relative z-20 w-full max-w-md px-4 sm:px-6">
+                <div className="bg-black/80 backdrop-blur-md border border-primary/40 p-6 sm:p-8 md:p-12 rounded-none neon-border">
                     <div className="flex flex-col items-center mb-10">
                         <div className="text-primary drop-shadow-[0_0_12px_rgba(89,242,13,0.9)] mb-4">
                             <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
