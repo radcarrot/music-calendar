@@ -12,6 +12,13 @@ const getSpotifyRedirectUri = () => `${process.env.BACKEND_URL}/api/auth/spotify
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Use an HTML redirect page instead of res.redirect() so that Vercel's proxy
+// doesn't strip Set-Cookie headers (which it does on 302 responses).
+const htmlRedirect = (url) =>
+    `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+    `<script>window.location.replace(${JSON.stringify(url)});</script>` +
+    `</head><body></body></html>`;
+
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: isProduction,
@@ -269,7 +276,7 @@ export const googleCallback = async (req, res) => {
                     tokens.expiry_date || null,
                     userId
                 ]);
-                return res.redirect(`${process.env.FRONTEND_URL}/dashboard?google_sync=success`);
+                return res.send(htmlRedirect(`${process.env.FRONTEND_URL}/dashboard?google_sync=success`));
             } catch (err) {
                 // Token invalid/expired, fall through to login/register flow
                 console.log('JWT invalid during Google sync, proceeding to login flow');
@@ -325,10 +332,10 @@ export const googleCallback = async (req, res) => {
         res.cookie('jwt', jwtToken, COOKIE_OPTIONS);
         res.cookie('refreshToken', user.refresh_token, REFRESH_COOKIE_OPTIONS);
 
-        res.redirect(`${process.env.FRONTEND_URL}/dashboard?login=success`);
+        res.send(htmlRedirect(`${process.env.FRONTEND_URL}/dashboard?login=success`));
     } catch (err) {
         console.error('Google Auth Callback Error:', err);
-        res.redirect(`${process.env.FRONTEND_URL}/dashboard?google_sync=error`);
+        res.send(htmlRedirect(`${process.env.FRONTEND_URL}/dashboard?google_sync=error`));
     }
 };
 
@@ -368,13 +375,13 @@ export const spotifyCallback = async (req, res) => {
 
         if (state === null || state !== storedState) {
             console.log('[Spotify] State mismatch:', { state, storedState });
-            return res.redirect(`${process.env.FRONTEND_URL}/login?error=state_mismatch`);
+            return res.send(htmlRedirect(`${process.env.FRONTEND_URL}/login?error=state_mismatch`));
         }
 
         res.clearCookie('spotify_auth_state');
 
         if (!code) {
-            return res.redirect(`${process.env.FRONTEND_URL}/login?error=missing_code`);
+            return res.send(htmlRedirect(`${process.env.FRONTEND_URL}/login?error=missing_code`));
         }
 
         // Exchange authorization code for tokens
@@ -431,7 +438,7 @@ export const spotifyCallback = async (req, res) => {
                     userId
                 ]);
                 console.log('[Spotify] Linked to existing user:', userId);
-                return res.redirect(`${process.env.FRONTEND_URL}/dashboard?spotify_sync=success`);
+                return res.send(htmlRedirect(`${process.env.FRONTEND_URL}/dashboard?spotify_sync=success`));
             } catch (err) {
                 console.log('[Spotify] JWT invalid, proceeding to login/register flow');
             }
@@ -481,10 +488,10 @@ export const spotifyCallback = async (req, res) => {
         res.cookie('refreshToken', user.refresh_token, REFRESH_COOKIE_OPTIONS);
 
         console.log('[Spotify] Auth complete, redirecting to dashboard');
-        res.redirect(`${process.env.FRONTEND_URL}/dashboard?login=success`);
+        res.send(htmlRedirect(`${process.env.FRONTEND_URL}/dashboard?login=success`));
     } catch (err) {
         console.error('[Spotify] Auth Callback Error:', err.response?.data || err.message);
 
-        res.redirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`);
+        res.send(htmlRedirect(`${process.env.FRONTEND_URL}/login?error=spotify_auth_failed`));
     }
 };
