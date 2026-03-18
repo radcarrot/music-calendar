@@ -245,7 +245,7 @@ const Settings = () => {
                                 </button>
                             ) : (
                                 <a
-                                    href={`${API_URL}/api/auth/spotify`}
+                                    href="/api/auth/spotify"
                                     className="text-sm font-medium text-[#1DB954] hover:text-[#1DB954] px-4 py-2 rounded-lg border border-[#1DB954]/30 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 transition-all">
                                     Connect
                                 </a>
