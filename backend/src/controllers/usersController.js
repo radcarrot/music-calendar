@@ -134,12 +134,12 @@ export const uploadProfileImage = async (req, res) => {
             return res.status(400).json({ error: 'No image uploaded' });
         }
 
-        const imageUrl = `/uploads/profiles/${req.file.filename}`;
+        const dataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
         const userId = req.user.id;
 
-        await pool.query('UPDATE users SET profile_image_url = $1 WHERE id = $2', [imageUrl, userId]);
+        await pool.query('UPDATE users SET profile_image_url = $1 WHERE id = $2', [dataUrl, userId]);
 
-        res.json({ message: 'Profile image updated successfully', profile_image_url: imageUrl });
+        res.json({ message: 'Profile image updated successfully', profile_image_url: dataUrl });
     } catch (err) {
         console.error('Error uploading profile image:', err);
         res.status(500).json({ error: 'Server error' });
