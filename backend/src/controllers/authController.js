@@ -216,7 +216,7 @@ export const googleAuth = (req, res) => {
 
     // Generate a secure random state string
     const state = crypto.randomBytes(32).toString('hex');
-    res.cookie('oauth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 15 * 60 * 1000 });
+    res.cookie('oauth_state', state, { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', maxAge: 15 * 60 * 1000 });
 
     const url = oauth2Client.generateAuthUrl({
         access_type: 'offline', // Requests refresh_token
