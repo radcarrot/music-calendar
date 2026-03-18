@@ -263,7 +263,7 @@ export const googleCallback = async (req, res) => {
         // Fetch User Profile from Google
         const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
         const userInfo = await oauth2.userinfo.get();
-        const { email, name: googleName } = userInfo.data;
+        const { email, name: googleName, picture: googlePicture } = userInfo.data;
 
         // Encrypt refresh token (defensively in case Google omits it on recurring logins)
         const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
@@ -307,8 +307,8 @@ export const googleCallback = async (req, res) => {
             const stdRefreshToken = jwt.sign({ tempId: crypto.randomBytes(16).toString('hex') }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
             const insertSql = `
-                INSERT INTO users (name, email, password_hash, refresh_token, google_access_token, google_refresh_token, google_token_expiry)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO users (name, email, password_hash, refresh_token, google_access_token, google_refresh_token, google_token_expiry, profile_image_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING id, name, email
             `;
             const insertResult = await query(insertSql, [
@@ -318,17 +318,19 @@ export const googleCallback = async (req, res) => {
                 stdRefreshToken,
                 tokens.access_token || null,
                 encryptedRefreshToken || null,
-                tokens.expiry_date || null
+                tokens.expiry_date || null,
+                googlePicture || null
             ]);
             user = insertResult.rows[0];
             user.refresh_token = stdRefreshToken;
         } else {
             // 2c. Log them in, but still update their Google tokens since they just authenticated
-            await query('UPDATE users SET google_access_token = $1, google_refresh_token = COALESCE($2, google_refresh_token), google_token_expiry = $3 WHERE id = $4', [
+            await query('UPDATE users SET google_access_token = $1, google_refresh_token = COALESCE($2, google_refresh_token), google_token_expiry = $3, profile_image_url = COALESCE(profile_image_url, $5) WHERE id = $4', [
                 tokens.access_token || null,
                 encryptedRefreshToken || null,
                 tokens.expiry_date || null,
-                user.id
+                user.id,
+                googlePicture || null
             ]);
 
             // Need a new standard refresh token
