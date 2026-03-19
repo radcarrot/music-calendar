@@ -17,6 +17,7 @@ const Dashboard = () => {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [isEditingEvent, setIsEditingEvent] = useState(false);
     const [editForm, setEditForm] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const newEventFormRef = useRef(null);
 
     const [formError, setFormError] = useState('');
@@ -336,7 +337,7 @@ const Dashboard = () => {
 
 
             {/* Header / Nav */}
-            <Navbar />
+            <Navbar onSidebarToggle={() => setSidebarOpen(o => !o)} sidebarOpen={sidebarOpen} />
 
             <div className="flex flex-1 overflow-hidden">
                 <main className="flex-1 flex flex-col overflow-y-auto bg-background-dark p-4 sm:p-6 lg:p-10 pb-24 md:pb-10 relative">
@@ -864,8 +865,13 @@ const Dashboard = () => {
                     </div>
                 </main>
 
+                {/* Mobile sidebar backdrop */}
+                {sidebarOpen && (
+                    <div className="fixed inset-0 bg-black/60 z-[90] md:hidden" onClick={() => setSidebarOpen(false)} />
+                )}
+
                 {/* Sidebar */}
-                <aside className="w-80 lg:w-96 bg-[#111] border-l border-accent-dark p-6 flex flex-col gap-8 overflow-y-auto">
+                <aside className={`w-80 lg:w-96 bg-[#111] border-l border-accent-dark p-6 flex flex-col gap-8 overflow-y-auto fixed inset-y-0 right-0 z-[95] transition-transform duration-300 md:relative md:translate-x-0 md:flex ${sidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}>
                     <section>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-white font-bold text-lg tracking-wide">Upcoming Soon</h3>

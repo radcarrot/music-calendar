@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Navbar = () => {
+const Navbar = ({ onSidebarToggle, sidebarOpen }) => {
     const { user, logout } = useAuth();
     const location = useLocation();
     const [imageError, setImageError] = useState(false);
@@ -61,6 +61,16 @@ const Navbar = () => {
                             <span className="material-symbols-outlined text-sm">person</span>
                         )}
                     </Link>
+
+                    {/* Sidebar toggle — phones only */}
+                    {onSidebarToggle && (
+                        <button
+                            onClick={onSidebarToggle}
+                            className="flex sm:hidden p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-accent-dark"
+                            aria-label="Toggle sidebar">
+                            <span className="material-symbols-outlined">{sidebarOpen ? 'close' : 'view_sidebar'}</span>
+                        </button>
+                    )}
 
                     {/* Hamburger — tablets only (sm to md); phones use BottomNav */}
                     <button
