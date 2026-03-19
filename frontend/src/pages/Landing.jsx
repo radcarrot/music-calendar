@@ -140,7 +140,7 @@ const Landing = () => {
                                 <CardContent className="space-y-4 md:space-y-6 p-0 text-white">
                                     <div className="flex items-center gap-4 md:gap-6 p-3 md:p-4 border border-primary/10 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all cursor-pointer group">
                                         <div className="w-14 h-14 md:w-16 md:h-16 bg-gray-800 shrink-0 border border-primary/20 group-hover:border-primary/60 transition-all"
-                                            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBlSp1Epy-CAVa4x7jHVDyAB1y74zlR6L68PDvkWLQq6LFsi42AZKn3seLXIpER0-bAETNddXjzfJaS0nmOv8TKdGZQ6sGDhY8tR3cmUKku9Q-CRjpBKJfAkH3WnxYwEkCingy0Ustdr3zlyTtcUdU13KRnHuCPcAegZ42hvbbHU4FZxHlOBcVyDLpdYBLJ8k2oinoN7P8kHEaKLTgdBmIRFPPuD2pRtGrmovEqx32cRLhsYVpA-ShuMrj8COU-nAH5H4WTscLj-2vw')", backgroundSize: "cover" }}>
+                                            style={{ backgroundImage: "url('https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2b/b9/fe/2bb9fef5-d7f3-8345-25a9-db0e79fde4e4/20UMGIM11048.rgb.jpg/600x600bb.jpg')", backgroundSize: "cover" }}>
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between mb-1">
@@ -152,7 +152,7 @@ const Landing = () => {
                                     </div>
                                     <div className="flex items-center gap-4 md:gap-6 p-3 md:p-4 border border-white/5 bg-white/5 hover:border-primary/40 transition-all cursor-pointer group opacity-80 hover:opacity-100 relative z-10">
                                         <div className="w-14 h-14 md:w-16 md:h-16 bg-gray-800 shrink-0 border border-white/10 group-hover:border-primary/60 transition-all"
-                                            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3jW4K5W78VFpV1cwdaT1ExDsZ51OybmVbKYEqdwoWiwHmetqoktd1eo4xtA9fWfFrqoqe9djX3Kw80-CUV5aWHF8xLU-k8JmU0ME2PiSN1OoCUH76N6udFef6OGOjDf8y8Udnntjkiu9MTkteGDaTXEBE-OYkRjumUhCtkUV99vVrLaRXWKqRWQ05QNvUNlo6BRa5pJOavq9xuE403KVZNfj_UperzuuoWi-tlfbwrlCg-psf-SU5rrlbT_Wc2yAdt-IMQMOIS8HF')", backgroundSize: "cover" }}>
+                                            style={{ backgroundImage: "url('https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/1b/fe/ea/1bfeea22-0fd6-a2af-afa1-1db7ff9838e7/13UAAIM69536.rgb.jpg/600x600bb.jpg')", backgroundSize: "cover" }}>
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between mb-1">
