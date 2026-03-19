@@ -155,21 +155,23 @@ export const refresh = async (req, res) => {
         const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) return res.status(401).json({ error: 'No refresh token' });
 
-        // Verify token
-        jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
-            if (err) return res.status(403).json({ error: 'Invalid refresh token' });
+        // Verify token synchronously so errors are caught by the outer try/catch
+        try {
+            jwt.verify(refreshToken, process.env.JWT_SECRET);
+        } catch {
+            return res.status(403).json({ error: 'Invalid refresh token' });
+        }
 
-            // Check if user has this token
-            const result = await query('SELECT * FROM users WHERE refresh_token = $1', [refreshToken]);
-            const user = result.rows[0];
+        // Check if user has this token
+        const result = await query('SELECT * FROM users WHERE refresh_token = $1', [refreshToken]);
+        const user = result.rows[0];
 
-            if (!user) return res.status(403).json({ error: 'Invalid refresh token' });
+        if (!user) return res.status(403).json({ error: 'Invalid refresh token' });
 
-            // Issue new access token
-            const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
-            res.cookie('jwt', token, COOKIE_OPTIONS);
-            res.status(200).json({ message: 'Token refreshed' });
-        });
+        // Issue new access token
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        res.cookie('jwt', token, COOKIE_OPTIONS);
+        res.status(200).json({ message: 'Token refreshed' });
     } catch (err) {
         console.error('Error refreshing token:', err);
         res.status(500).json({ error: 'Internal server error' });

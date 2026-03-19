@@ -109,8 +109,12 @@ export const syncEventToGoogle = async (userId, localEvent) => {
             };
         } else {
             // All-day event — use date (no time)
+            // Google Calendar requires end date to be the next day (exclusive)
+            const endDate = new Date(`${eventDateStr}T00:00:00Z`);
+            endDate.setUTCDate(endDate.getUTCDate() + 1);
+            const endDateStr = endDate.toISOString().split('T')[0];
             event.start = { date: eventDateStr };
-            event.end = { date: eventDateStr };
+            event.end = { date: endDateStr };
         }
 
         // Add streaming URL as source if provided
